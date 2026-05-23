@@ -13,6 +13,10 @@
     <artifactId>mojian-admin</artifactId>
     <description>后台管理模块</description>
 
+    <properties>
+        <lombok.version>1.18.34</lombok.version>
+    </properties>
+
 
     <dependencies>
         <dependency>

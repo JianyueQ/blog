@@ -12,6 +12,10 @@
     <artifactId>mojian-file</artifactId>
     <description>文件模块</description>
 
+    <properties>
+        <lombok.version>1.18.34</lombok.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.mojian</groupId>

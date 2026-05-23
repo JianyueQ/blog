@@ -11,6 +11,10 @@
 
     <artifactId>mojian-auth</artifactId>
 
+    <properties>
+        <lombok.version>1.18.34</lombok.version>
+    </properties>
+
     <dependencies>
 
         <!--微信公众号关键词自动回复-->

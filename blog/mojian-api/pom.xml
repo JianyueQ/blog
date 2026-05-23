@@ -14,6 +14,10 @@
     <artifactId>mojian-api</artifactId>
     <description>接口模块</description>
 
+    <properties>
+        <lombok.version>1.18.34</lombok.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.mojian</groupId>

@@ -12,6 +12,10 @@
     <artifactId>mojian-quartz</artifactId>
     <description>定时任务模块</description>
 
+    <properties>
+        <lombok.version>1.18.34</lombok.version>
+    </properties>
+
     <dependencies>
 
         <!-- 定时任务 -->
