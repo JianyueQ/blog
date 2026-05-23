@@ -7,29 +7,29 @@ import com.mojian.common.Result;
 import com.mojian.dto.JobLogQuery;
 import com.mojian.entity.SysJobLog;
 import com.mojian.service.SysJobLogService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Api(tags = "定时任务日志")
 @RestController
+@Tag(name = "定时任务日志")
 @RequestMapping("/monitor/jobLog")
 @RequiredArgsConstructor
 public class SysJobLogController {
 
     private final SysJobLogService jobLogService;
 
-    @ApiOperation(value = "获取定时任务日志列表")
+    @Operation(summary = "获取定时任务日志列表")
     @GetMapping("/list")
     public Result<Page<SysJobLog>> list(JobLogQuery query) {
         return Result.success(jobLogService.selectJobLogPage(query));
     }
 
     @DeleteMapping("/delete/{ids}")
-    @ApiOperation(value = "删除定时任务日志")
+    @Operation(summary = "删除定时任务日志")
     @OperationLogger(value = "删除定时任务日志")
     @SaCheckPermission("sys:jobLog:delete")
     public Result<Void> delete(@PathVariable List<Long> ids) {
@@ -38,7 +38,7 @@ public class SysJobLogController {
     }
 
     @DeleteMapping("/clean")
-    @ApiOperation(value = "清空定时任务日志")
+    @Operation(summary = "清空定时任务日志")
     @OperationLogger(value = "清空定时任务日志")
     @SaCheckPermission("sys:jobLog:clean")
     public Result<Void> clean() {

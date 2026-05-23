@@ -9,8 +9,8 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -29,7 +29,7 @@ public class ApiAccessLogInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 记录 HandlerMethod，提供给 ApiAccessLogFilter 使用
-        HandlerMethod handlerMethod = handler instanceof HandlerMethod ? (HandlerMethod) handler : null;
+        HandlerMethod handlerMethod = handler instanceof HandlerMethod hm ? hm : null;
 
         if (!SpringUtil.getActiveProfile().equals("prod")) {
             String method = request.getMethod();
@@ -91,7 +91,7 @@ public class ApiAccessLogInterceptor implements HandlerInterceptor {
                     .filter(i -> clazzContents.get(i).contains(" " + method.getName() + "(")) // 简单匹配，不考虑方法重名
                     .mapToObj(i -> i + 1) // 行号从 1 开始
                     .findFirst();
-            if (!lineNumber.isPresent()) {
+            if (lineNumber.isEmpty()) {
                 return;
             }
             // 打印结果

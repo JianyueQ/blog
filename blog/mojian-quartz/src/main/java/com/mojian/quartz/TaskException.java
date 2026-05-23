@@ -1,11 +1,14 @@
 package com.mojian.quartz;
 
+import java.io.Serial;
+
 /**
  * @author blue
  * @date 2021/12/8
  * @apiNote
  */
 public class TaskException extends Exception {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private Code code;

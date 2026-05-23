@@ -21,7 +21,7 @@ public class BeanCopyUtil {
         }
         T target = null;
         try {
-            target = targetClass.newInstance();
+            target = targetClass.getDeclaredConstructor().newInstance();
             org.springframework.beans.BeanUtils.copyProperties(source, target);
         } catch (Exception e) {
             e.printStackTrace();

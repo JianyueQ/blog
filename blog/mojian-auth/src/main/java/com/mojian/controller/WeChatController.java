@@ -4,8 +4,8 @@ import cn.hutool.core.util.RandomUtil;
 import com.mojian.common.RedisConstants;
 import com.mojian.service.AuthService;
 import com.mojian.utils.RedisUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
@@ -14,7 +14,7 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * @description:
  */
 @Slf4j
-@Api(tags = "微信接口相关控制器")
+@Tag(name = "微信接口相关控制器")
 @RestController()
 @RequestMapping("/wechat")
 @RequiredArgsConstructor
@@ -41,7 +41,7 @@ public class WeChatController {
 
     private final Pattern pattern = Pattern.compile("(?i)^DL\\d{4}$");
 
-    @ApiOperation(value = "微信公众号服务器配置校验token")
+    @Operation(summary = "微信公众号服务器配置校验token")
     @GetMapping(produces = "text/plain;charset=utf-8")
     public String checkSignature(@RequestParam(name = "signature") String signature,
                                  @RequestParam(name = "timestamp") String timestamp,

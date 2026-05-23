@@ -3,7 +3,7 @@ package com.mojian.quartz;
 import org.apache.velocity.app.Velocity;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.Properties;
 
 @Configuration

@@ -46,8 +46,7 @@ public class ServerServiceImpl implements ServerService {
         
         cpu.setCpuNum(Runtime.getRuntime().availableProcessors());
         
-        if (osBean instanceof com.sun.management.OperatingSystemMXBean) {
-            com.sun.management.OperatingSystemMXBean sunOsBean = (com.sun.management.OperatingSystemMXBean) osBean;
+        if (osBean instanceof com.sun.management.OperatingSystemMXBean sunOsBean) {
             double systemCpuLoad = sunOsBean.getSystemCpuLoad();
             cpu.setUsed(Double.parseDouble(df.format(systemCpuLoad * 100)));
             cpu.setSys(Double.parseDouble(df.format(systemCpuLoad * 100)));
@@ -143,6 +142,6 @@ public class ServerServiceImpl implements ServerService {
         long hours = (ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
         long minutes = (ms % (1000 * 60 * 60)) / (1000 * 60);
         long seconds = (ms % (1000 * 60)) / 1000;
-        return String.format("%d天%d小时%d分%d秒", days, hours, minutes, seconds);
+        return "%d天%d小时%d分%d秒".formatted(days, hours, minutes, seconds);
     }
 } 

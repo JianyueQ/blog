@@ -1,6 +1,6 @@
 package com.mojian.annotation;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,9 +16,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AccessLimit {
 
-    @ApiModelProperty(value = "访问次数")
+    @Schema(description = "访问次数")
     int count() default 10;
 
-    @ApiModelProperty(value = "时间/单位秒")
+    @Schema(description = "时间/单位秒")
     int time() default 60;
 }

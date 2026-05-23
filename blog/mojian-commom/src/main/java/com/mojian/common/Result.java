@@ -1,6 +1,6 @@
 package com.mojian.common;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -9,16 +9,16 @@ import java.util.Map;
 @Data
 public class Result<T> {
 
-    @ApiModelProperty(value = "状态码")
+    @Schema(description = "状态码")
     private Integer code;
 
-    @ApiModelProperty(value = "消息")
+    @Schema(description = "消息")
     private String message;
 
-    @ApiModelProperty(value = "数据")
+    @Schema(description = "数据")
     private T data;
 
-    @ApiModelProperty(value = "额外信息")
+    @Schema(description = "额外信息")
     private Map<String,Object> extra = new HashMap<>();
 
     public Result<T> putExtra(String key, Object value) {

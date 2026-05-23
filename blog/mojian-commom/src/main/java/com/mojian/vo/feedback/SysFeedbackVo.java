@@ -1,8 +1,7 @@
 package com.mojian.vo.feedback;
 
 import com.mojian.entity.SysFeedback;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -11,12 +10,12 @@ import lombok.Data;
  * @description:
  */
 @Data
-@ApiModel(value = "反馈对象vo")
+@Schema(name = "反馈对象vo")
 public class SysFeedbackVo extends SysFeedback {
 
-    @ApiModelProperty(value = "昵称")
+    @Schema(description = "昵称")
     private String nickname;
 
-    @ApiModelProperty(value = "头像")
+    @Schema(description = "头像")
     private String avatar;
 }

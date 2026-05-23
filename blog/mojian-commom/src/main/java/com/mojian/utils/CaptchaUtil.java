@@ -93,7 +93,7 @@ public class CaptchaUtil {
             }
             //获取本地图片
             else {
-                String imgPath = String.format(IMG_PATH, nonce);
+                String imgPath = IMG_PATH.formatted(nonce);
                 File file = new File(imgPath);
                 return ImageIO.read(file);
             }
@@ -230,7 +230,7 @@ public class CaptchaUtil {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(bufferedImage, type, byteArrayOutputStream);
             String base64 = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
-            return String.format("data:image/%s;base64,%s", type, base64);
+            return "data:image/%s;base64,%s".formatted(type, base64);
         } catch (IOException e) {
             System.out.println("图片资源转换BASE64失败");
             //异常处理

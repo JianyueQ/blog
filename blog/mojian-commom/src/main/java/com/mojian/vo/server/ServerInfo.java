@@ -1,27 +1,26 @@
 package com.mojian.vo.server;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.util.List;
 
 @Data
-@ApiModel(value = "服务器信息")
+@Schema(name = "服务器信息")
 public class ServerInfo {
 
-    @ApiModelProperty(value = "cpu信息")
+    @Schema(description = "cpu信息")
     private CpuInfo cpu;
 
-    @ApiModelProperty(value = "内存信息")
+    @Schema(description = "内存信息")
     private MemInfo mem;
 
-    @ApiModelProperty(value = "系统信息")
+    @Schema(description = "系统信息")
     private SysInfo sys;
 
-    @ApiModelProperty(value = "JVM信息")
+    @Schema(description = "JVM信息")
     private JvmInfo jvm;
 
-    @ApiModelProperty(value = "磁盘信息")
+    @Schema(description = "磁盘信息")
     private List<SysFile> sysFiles;
 }
 

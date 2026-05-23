@@ -1,7 +1,6 @@
 package com.mojian.vo.menu;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,28 +12,28 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel(value = "路由对象")
+@Schema(name = "路由对象")
 public class RouterVO {
 
-    @ApiModelProperty(value = "菜单ID")
+    @Schema(description = "菜单ID")
     private Integer id;
 
-    @ApiModelProperty(value = "组件")
+    @Schema(description = "组件")
     private String component;
 
-    @ApiModelProperty(value = "路由地址")
+    @Schema(description = "路由地址")
     private String path;
 
-    @ApiModelProperty(value = "路由名称")
+    @Schema(description = "路由名称")
     private String name;
 
-    @ApiModelProperty(value = "跳转地址")
+    @Schema(description = "跳转地址")
     private String redirect;
 
-    @ApiModelProperty(value = "排序")
+    @Schema(description = "排序")
     private Integer sort;
 
-    @ApiModelProperty(value = "菜单属性")
+    @Schema(description = "菜单属性")
     private MetaVO meta;
 
     private List<RouterVO> children;
@@ -42,16 +41,16 @@ public class RouterVO {
     @Data
 public static class MetaVO{
 
-        @ApiModelProperty(value = "菜单标题")
+        @Schema(description = "菜单标题")
         private String title;
 
-        @ApiModelProperty(value = "菜单图标")
+        @Schema(description = "菜单图标")
         private String icon;
 
-        @ApiModelProperty(value = "是否隐藏")
+        @Schema(description = "是否隐藏")
         private Boolean hidden;
 
-        @ApiModelProperty(value = "是否外链")
+        @Schema(description = "是否外链")
         private Boolean isExternal;
 
         public MetaVO(String title, String icon, Integer hidden, Integer isExternal) {

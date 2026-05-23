@@ -4,7 +4,7 @@ import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mojian.common.Constants;
 import com.mojian.common.RedisConstants;
@@ -41,11 +41,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -181,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //获取随机头像
-        String avatar = avatarList[(int) (Math.random() * avatarList.length)];
+        String avatar = avatarList[(int) (ThreadLocalRandom.current().nextDouble() * avatarList.length)];
         sysUser = SysUser.builder()
                 .username(dto.getEmail())
                 .password(BCrypt.hashpw(dto.getPassword()))
@@ -216,7 +217,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String getWechatLoginCode() {
         //随机获取4位数字
-        String code = "DL" + (int) ((Math.random() * 9 + 1) * 1000);
+        String code = "DL" + (int) ((ThreadLocalRandom.current().nextDouble() * 9 + 1) * 1000);
         redisUtil.set(RedisConstants.WX_LOGIN_USER_CODE + code, "NOT-LOGIN", RedisConstants.MINUTE_EXPIRE, TimeUnit.SECONDS);
         return code;
     }
@@ -268,10 +269,10 @@ public class AuthServiceImpl implements AuthService {
             httpServletResponse.sendRedirect("https://www.shiyit.com");
             return;
         }
-        String result = com.alibaba.fastjson.JSONObject.toJSONString(response.getData());
+        String result = com.alibaba.fastjson2.JSONObject.toJSONString(response.getData());
         log.info("第三方登录验证结果:{}", result);
 
-        com.alibaba.fastjson.JSONObject jsonObject = JSON.parseObject(result);
+        com.alibaba.fastjson2.JSONObject jsonObject = JSON.parseObject(result);
         Object uuid = jsonObject.get("uuid");
         // 获取用户ip信息
         String ipAddress = IpUtil.getIp();
@@ -305,7 +306,7 @@ public class AuthServiceImpl implements AuthService {
         String url = "https://api.weixin.qq.com/sns/jscode2session?appid=" + wechatProperties.getAppletAppId()
                 + "&secret=" + wechatProperties.getAppletSecret() + "&js_code=" + code + "&grant_type=authorization_code";
         String result = HttpUtil.get(url);
-        com.alibaba.fastjson.JSONObject jsonObject = JSON.parseObject(result);
+        com.alibaba.fastjson2.JSONObject jsonObject = JSON.parseObject(result);
         Object openid = jsonObject.get("openid");
         if (openid == null) {
             throw new ServiceException("登录失败");
@@ -316,7 +317,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (user == null) {
             String ip = IpUtil.getIp();
-            String avatar = avatarList[(int) (Math.random() * avatarList.length)];
+            String avatar = avatarList[(int) (ThreadLocalRandom.current().nextDouble() * avatarList.length)];
             user = SysUser.builder()
                     .username(openid.toString())
                     .password(UUID.randomUUID().toString())
@@ -371,7 +372,7 @@ public class AuthServiceImpl implements AuthService {
                     .username(openId)
                     .password(BCrypt.hashpw(openId))
                     .nickname("WECHAT-" + getRandomString(6))
-                    .avatar(avatarList[(int) (Math.random() * avatarList.length)])
+                    .avatar(avatarList[(int) (ThreadLocalRandom.current().nextDouble() * avatarList.length)])
                     .loginType(LoginTypeEnum.WECHAT.getType())
                     .lastLoginTime(LocalDateTime.now())
                     .ip(ip)

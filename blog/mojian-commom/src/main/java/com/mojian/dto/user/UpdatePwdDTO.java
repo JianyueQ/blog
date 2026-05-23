@@ -1,16 +1,15 @@
 package com.mojian.dto.user;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "修改密码请求参数")
+@Schema(name = "修改密码请求参数")
 public class UpdatePwdDTO {
 
-    @ApiModelProperty(value = "旧密码")
+    @Schema(description = "旧密码")
     private String oldPassword;
 
-    @ApiModelProperty(value = "新密码")
+    @Schema(description = "新密码")
     private String newPassword;
 }

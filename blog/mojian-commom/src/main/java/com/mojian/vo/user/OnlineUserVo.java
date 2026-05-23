@@ -1,7 +1,7 @@
 package com.mojian.vo.user;
 
 import com.mojian.entity.SysUser;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 
@@ -13,7 +13,7 @@ import lombok.Data;
 @Data
 public class OnlineUserVo extends SysUser {
 
-    @ApiModelProperty(value = "token")
+    @Schema(description = "token")
     private String tokenValue;
 
 }

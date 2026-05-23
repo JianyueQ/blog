@@ -11,8 +11,8 @@ import com.mojian.entity.SysFileOss;
 import com.mojian.exception.ServiceException;
 import com.mojian.service.FileDetailService;
 import com.mojian.utils.DateUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.x.file.storage.core.FileInfo;
@@ -23,8 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
+@Tag(name = "文件管理")
 @RequestMapping("/file")
-@Api(tags = "文件管理")
 @RequiredArgsConstructor
 public class FileController {
 
@@ -35,14 +35,14 @@ public class FileController {
 
     @SaCheckLogin
     @GetMapping("/list")
-    @ApiOperation(value = "获取文件记录表列表")
+    @Operation(summary = "获取文件记录表列表")
     public Result<IPage<FileDetail>> list(FileDetail fileDetail) {
         return Result.success(fileDetailService.selectPage(fileDetail));
     }
 
     @SaCheckLogin
     @GetMapping("/getOssConfig")
-    @ApiOperation(value = "获取存储平台配置")
+    @Operation(summary = "获取存储平台配置")
     public Result<List<SysFileOss>> getOssConfig() {
         return Result.success(fileDetailService.getOssConfig());
     }
@@ -50,7 +50,7 @@ public class FileController {
     @SaCheckLogin
     @PostMapping("/addOss")
     @SaCheckPermission("sys:oss:submit")
-    @ApiOperation(value = "添加存储平台配置")
+    @Operation(summary = "添加存储平台配置")
     public Result<Void> addOss(@RequestBody SysFileOss sysFileOss) {
         fileDetailService.addOss(sysFileOss);
         if (sysFileOss.getIsEnable() == Constants.YES) {
@@ -62,7 +62,7 @@ public class FileController {
     @SaCheckLogin
     @PutMapping("/updateOss")
     @SaCheckPermission("sys:oss:submit")
-    @ApiOperation(value = "修改存储平台配置")
+    @Operation(summary = "修改存储平台配置")
     public Result<Void> updateOss(@RequestBody SysFileOss sysFileOss) {
         fileDetailService.updateOss(sysFileOss);
         if (sysFileOss.getIsEnable() == Constants.YES) {
@@ -73,7 +73,7 @@ public class FileController {
 
     @SaCheckLogin
     @PostMapping("/upload")
-    @ApiOperation(value = "上传文件")
+    @Operation(summary = "上传文件")
     public Result<String> upload(MultipartFile file, String source) {
         String path = DateUtil.parseDateToStr(DateUtil.YYYYMMDD, DateUtil.getNowDate()) + "/";
         //这个source可在前端上传文件时提供，可用来区分是头像还是文章图片等
@@ -94,7 +94,7 @@ public class FileController {
     }
 
     @GetMapping("/delete")
-    @ApiOperation(value = "删除文件")
+    @Operation(summary = "删除文件")
     @SaCheckPermission("sys:file:delete")
     public Result<Boolean> delete(String url) {
         boolean flag = fileStorageService.delete(url);

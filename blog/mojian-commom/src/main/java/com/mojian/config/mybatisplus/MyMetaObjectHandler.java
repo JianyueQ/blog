@@ -35,8 +35,8 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     private LoginUserInfo getCurrentUser() {
         try {
             Object obj = StpUtil.getSession().get(Constants.CURRENT_USER);
-            if (obj instanceof LoginUserInfo) {
-                return (LoginUserInfo) obj;
+            if (obj instanceof LoginUserInfo info) {
+                return info;
             }
             return null;
         } catch (Exception e) {

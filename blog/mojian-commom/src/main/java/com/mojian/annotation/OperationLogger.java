@@ -1,7 +1,8 @@
 package com.mojian.annotation;
 
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -9,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@ApiModel(value = "操作日志注解")
+@Schema(name = "操作日志注解")
 public @interface OperationLogger {
 
     /**

@@ -1,16 +1,15 @@
 package com.mojian.vo.dashboard;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel(value = "贡献度数据")
+@Schema(name = "贡献度数据")
 public class ContributionData {
 
-    @ApiModelProperty(value = "日期")
+    @Schema(description = "日期")
     private String date;
 
-    @ApiModelProperty(value = "数量")
+    @Schema(description = "数量")
     private Integer count;
 }

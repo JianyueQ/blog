@@ -6,29 +6,29 @@ import com.mojian.common.Result;
 import com.mojian.entity.SysMenu;
 import com.mojian.service.SysMenuService;
 import com.mojian.vo.menu.RouterVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@Tag(name = "菜单管理")
 @RequestMapping("/sys/menu")
 @RequiredArgsConstructor
-@Api(tags = "菜单管理")
 public class SysMenuController {
 
     private final SysMenuService sysMenuService;
 
     @GetMapping("/tree")
-    @ApiOperation(value = "获取菜单树列表")
+    @Operation(summary = "获取菜单树列表")
     public Result<List<SysMenu>> getMenuTree() {
         return Result.success(sysMenuService.getMenuTree());
     }
 
     @PostMapping
-    @ApiOperation(value = "添加菜单")
+    @Operation(summary = "添加菜单")
     @OperationLogger(value = "添加菜单")
     @SaCheckPermission("sys:menu:add")
     public Result<Void> addMenu(@RequestBody SysMenu menu) {
@@ -37,7 +37,7 @@ public class SysMenuController {
     }
 
     @PutMapping
-    @ApiOperation(value = "修改菜单")
+    @Operation(summary = "修改菜单")
     @OperationLogger(value = "修改菜单")
     @SaCheckPermission("sys:menu:update")
     public Result<Void> updateMenu(@RequestBody SysMenu menu) {
@@ -46,7 +46,7 @@ public class SysMenuController {
     }
 
     @DeleteMapping("/{id}")
-    @ApiOperation(value = "删除菜单")
+    @Operation(summary = "删除菜单")
     @OperationLogger(value = "删除菜单")
     @SaCheckPermission("sys:menu:delete")
     public Result<Void> deleteMenu(@PathVariable Integer id) {
@@ -55,7 +55,7 @@ public class SysMenuController {
     }
 
     @GetMapping(value = "/routers")
-    @ApiOperation(value = "获取用户菜单")
+    @Operation(summary = "获取用户菜单")
     public Result<List<RouterVO>> getCurrentUserMenu() {
         return Result.success(sysMenuService.getCurrentUserMenu());
     }
