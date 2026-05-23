@@ -51,6 +51,18 @@ mvn clean compile
 | Spring Security | ~5.7.x | ~7.0.x |
 | javax → jakarta | 9.x | 10.x |
 
+### 5. Knife4j API文档
+- **原版本**: `knife4j-openapi2-spring-boot-starter` 4.4.0 (使用 javax)
+- **新版本**: `knife4j-openapi3-jakarta-spring-boot-starter` 4.5.0 (使用 jakarta)
+
+### 6. MySQL 驱动
+- **原版本**: `mysql-connector-java`
+- **新版本**: `mysql-connector-j` 8.0.33 (Spring Boot 3 推荐)
+
+### 7. FastJSON
+- **原版本**: `com.alibaba:fastjson` 2.0.26
+- **新版本**: `com.alibaba.fastjson2:fastjson2` 2.0.62 (更名，Spring Boot 3 兼容)
+
 ## 遗留项 (需手动检查)
 
 ### 1. Sa-Token 认证框架
@@ -66,19 +78,14 @@ mvn clean compile
 ### 4. 剩余 javax 引用
 仅剩 `javax.imageio.ImageIO` (标准 Java API，无需修改)
 
-## 后续建议
-
-1. **运行测试**: `mvn test` 验证功能完整性
-2. **更新 Sa-Token**: 检查并升级到最新版本以获得 Spring Security 6 兼容性
-3. **Docker 镜像**: 如有 Dockerfile，需将 Java 基础镜像升级到 17+
-4. **代码审查**: 检查迁移后的 Controller 和 Security 配置
-
 ## Git 提交
 
 ```
+ad326c5 fix: upgrade knife4j to Spring Boot 3 compatible version (jakarta)
+eaecbb2 docs: add Spring Boot 3.5 upgrade summary report
 0e839eb chore(rewrite): Spring Boot 2.7 → 3.5 migration via OpenRewrite
 ```
 
 ---
 
-**状态**: ✅ 升级完成，编译通过
+**状态**: ✅ 升级完成，编译通过，运行需验证

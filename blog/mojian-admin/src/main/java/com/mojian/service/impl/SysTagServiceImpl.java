@@ -12,6 +12,7 @@ import com.mojian.service.SysTagService;
 import com.mojian.utils.PageUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,7 @@ public class SysTagServiceImpl extends ServiceImpl<SysTagMapper, SysTag> impleme
      */
     @Override
     public List<SysTag> selectList(SysTag sysTag) {
-        return list(null);
+        return list(new QueryWrapper<>());
     }
 
     /**
