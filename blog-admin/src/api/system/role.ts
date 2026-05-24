@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getRoleListApi(params?: any) {
   return request({
-    url: '/sys/role/',
+    url: '/sys/role',
     method: 'get',
     params
   })
@@ -16,7 +16,7 @@ export function getRoleListApi(params?: any) {
  */
 export function createRoleApi(data: any) {
   return request({
-    url: '/sys/role/',
+    url: '/sys/role',
     method: 'post',
     data
   })
@@ -27,7 +27,7 @@ export function createRoleApi(data: any) {
  */
 export function updateRoleApi(data: any) {
   return request({
-    url: `/sys/role/`,
+    url: `/sys/role`,
     method: 'put',
     data
   })

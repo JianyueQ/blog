@@ -7,12 +7,25 @@
           <div class="profile-header">
             <div class="header-backdrop"></div>
             <div class="header-content">
-              <el-avatar 
-                :size="100" 
-                :src="userInfo.sysUser.avatar" 
-                class="profile-avatar"
-              />
+              <div class="avatar-wrapper">
+                <el-avatar 
+                  :size="100" 
+                  :src="userInfo.sysUser.avatar" 
+                  class="profile-avatar"
+                />
+                <div class="avatar-upload-overlay" @click="triggerAvatarUpload">
+                  <el-icon><Camera /></el-icon>
+                  <span>更换头像</span>
+                </div>
+              </div>
               <h2 class="profile-name">{{ userInfo.sysUser.nickname }}</h2>
+              <input 
+                ref="avatarInputRef" 
+                type="file" 
+                accept="image/*" 
+                style="display: none" 
+                @change="handleAvatarChange"
+              />
             </div>
           </div>
           <div class="profile-info">
@@ -166,11 +179,14 @@
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus'
-import { getUserProfileApi, updateUserProfileApi,updateUserPwdApi } from '@/api/system/user'
+import { getUserProfileApi, updateUserProfileApi, updateUserPwdApi } from '@/api/system/user'
+import { uploadApi } from '@/api/file'
 
 const activeTab = ref('basic')
 const userFormRef = ref()
 const pwdFormRef = ref()
+const avatarInputRef = ref()
+const avatarUploading = ref(false)
 
 // 用户信息
 const userInfo = ref<any>({
@@ -281,6 +297,59 @@ const submitPwdForm = async () => {
   }
 }
 
+// 触发头像上传
+const triggerAvatarUpload = () => {
+  avatarInputRef.value?.click()
+}
+
+// 处理头像文件选择
+const handleAvatarChange = async (e: any) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  // 验证文件类型
+  if (!file.type.startsWith('image/')) {
+    ElMessage.warning('请上传图片文件')
+    return
+  }
+
+  // 验证文件大小 (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    ElMessage.warning('图片大小不能超过 5MB')
+    return
+  }
+
+  avatarUploading.value = true
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const res = await uploadApi(formData, 'avatar')
+    if (res.code === 200 && res.data) {
+      // 更新用户头像
+      const updateData = {
+        id: userInfo.value.sysUser.id,
+        avatar: res.data.url || res.data
+      }
+      await updateUserProfileApi(updateData)
+      ElMessage.success('头像上传成功')
+      // 刷新用户信息
+      await getUser()
+    } else {
+      ElMessage.error(res.msg || '上传失败')
+    }
+  } catch (error: any) {
+    console.error('上传失败:', error)
+    ElMessage.error(error.msg || '上传失败')
+  } finally {
+    avatarUploading.value = false
+    // 清空 input
+    if (avatarInputRef.value) {
+      avatarInputRef.value.value = ''
+    }
+  }
+}
+
 onMounted(() => {
   getUser()
 })
@@ -326,6 +395,45 @@ onMounted(() => {
     .profile-avatar {
       border: 4px solid rgba(255, 255, 255, 0.8);
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+          
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100px;
+      height: 100px;
+      
+      .avatar-upload-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s;
+              
+        .el-icon {
+          font-size: 24px;
+          margin-bottom: 4px;
+        }
+              
+        span {
+          font-size: 12px;
+        }
+      }
+            
+      &:hover .avatar-upload-overlay {
+        opacity: 1;
+      }
     }
     
     .profile-name {
