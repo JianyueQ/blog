@@ -27,7 +27,7 @@ public class CaptchaUtil {
     /**
      * 网络图片地址
      **/
-    private final static String IMG_URL = "https://v2.api-m.com/api/wallpaper?return=302";
+    private final static String IMG_URL = "https://acg.yaohud.cn/dm/acg.php";
 
     /**
      * 本地图片地址
@@ -281,6 +281,10 @@ public class CaptchaUtil {
         int blockRadius = captcha.getBlockRadius();
         //获取资源图
         BufferedImage canvasImage = getBufferedImage(captcha.getPlace());
+        if (canvasImage == null) {
+            throw new ServiceException("获取验证码图片资源失败，请稍后重试");
+        }
+
         //调整原图到指定大小
         canvasImage = imageResize(canvasImage, canvasWidth, canvasHeight);
         //随机生成阻塞块坐标

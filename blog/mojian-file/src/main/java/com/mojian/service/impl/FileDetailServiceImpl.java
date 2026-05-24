@@ -215,7 +215,9 @@ public class FileDetailServiceImpl extends ServiceImpl<FileDetailMapper, FileDet
      * 将指定值转换成 json 字符串
      */
     public String valueToJson(Object value) throws JsonProcessingException {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         return objectMapper.writeValueAsString(value);
     }
 
@@ -223,7 +225,9 @@ public class FileDetailServiceImpl extends ServiceImpl<FileDetailMapper, FileDet
      * 将 json 字符串转换成元数据对象
      */
     public Map<String, String> jsonToMetadata(String json) throws JsonProcessingException {
-        if (StrUtil.isBlank(json)) return null;
+        if (StrUtil.isBlank(json)) {
+            return null;
+        }
         return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
     }
 
@@ -231,7 +235,9 @@ public class FileDetailServiceImpl extends ServiceImpl<FileDetailMapper, FileDet
      * 将 json 字符串转换成字典对象
      */
     public Dict jsonToDict(String json) throws JsonProcessingException {
-        if (StrUtil.isBlank(json)) return null;
+        if (StrUtil.isBlank(json)) {
+            return null;
+        }
         return objectMapper.readValue(json, Dict.class);
     }
 
@@ -239,7 +245,9 @@ public class FileDetailServiceImpl extends ServiceImpl<FileDetailMapper, FileDet
      * 将 json 字符串转换成哈希信息对象
      */
     public HashInfo jsonToHashInfo(String json) throws JsonProcessingException {
-        if (StrUtil.isBlank(json)) return null;
+        if (StrUtil.isBlank(json)) {
+            return null;
+        }
         return objectMapper.readValue(json, HashInfo.class);
     }
 }

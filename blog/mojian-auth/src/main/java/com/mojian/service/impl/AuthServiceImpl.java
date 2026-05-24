@@ -121,7 +121,8 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             throw new ServiceException("登录用户不存在");
         }
-
+        //加密密码
+        String password = BCrypt.hashpw(loginDTO.getPassword());
         // 验证密码
         if (!BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
             throw new ServiceException("用户名或密码错误");

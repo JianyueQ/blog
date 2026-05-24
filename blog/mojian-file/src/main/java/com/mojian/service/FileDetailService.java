@@ -25,6 +25,7 @@ public interface FileDetailService extends FileRecorder,IService<FileDetail> {
      * @param url
      * @return
      */
+    @Override
     boolean delete(String url);
 
     /**

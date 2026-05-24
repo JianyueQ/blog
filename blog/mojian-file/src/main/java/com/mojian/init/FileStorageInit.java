@@ -72,7 +72,7 @@ public class FileStorageInit {
                 config.setPlatform(sysFileOss.getPlatform());
                 config.setAccessKey(sysFileOss.getAccessKey());
                 config.setSecretKey(sysFileOss.getSecretKey());
-                config.setDomain(sysFileOss.getDomain());
+                config.setDomain(sysFileOss.getDomain() + sysFileOss.getBucket() + "/");
                 config.setBucketName(sysFileOss.getBucket());
                 config.setBasePath(sysFileOss.getBasePath());
                 config.setEndPoint(sysFileOss.getDomain());
