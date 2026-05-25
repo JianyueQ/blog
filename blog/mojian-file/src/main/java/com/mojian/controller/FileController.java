@@ -2,7 +2,8 @@ package com.mojian.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mojian.common.Constants;
 import com.mojian.common.Result;
@@ -80,11 +81,13 @@ public class FileController {
         if (StringUtils.isNotBlank(source)) {
             path = path + source + "/";
         }
+        //生成新文件名：UUID + 原扩展名
+        String newFilename = IdUtil.fastSimpleUUID() + "." + FileUtil.extName(file.getOriginalFilename());
         //获取文件名和后缀
         FileInfo fileInfo = fileStorageService.of(file)
                 .setPath(path)
-                .setSaveFilename(RandomUtil.randomNumbers(2) + "_" + file.getOriginalFilename()) //随机俩个数字，避免相同文件名时文件名冲突
-                .putAttr("source",source)
+                .setSaveFilename(newFilename)
+                .putAttr("source", source)
                 .upload();
 
         if (fileInfo == null) {

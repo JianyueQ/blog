@@ -7,10 +7,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mojian.common.Result;
 import com.mojian.entity.CodeImage;
 import com.mojian.exception.ServiceException;
+import com.mojian.service.CodeImageCacheService;
 import com.mojian.service.CodeImageService;
 import com.mojian.utils.DateUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.dromara.x.file.storage.core.FileInfo;
 import org.dromara.x.file.storage.core.FileStorageService;
@@ -18,6 +20,11 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 @RestController
@@ -37,10 +44,41 @@ public class CodeImageController {
         return Result.success(codeImageService.selectPage(codeImage));
     }
 
+    /**
+     * 随机获取一张验证码图片（直接返回图片流，Content-Type: image/png）
+     * <p>
+     * 用于 CaptchaUtil 直接读取，避免 JSON 解析
+     */
     @GetMapping("/random")
     @Operation(summary = "随机获取一张验证码图片")
-    public Result<String> getRandomCodeImage() {
-        return Result.success(codeImageService.getRandomCodeImageUrl());
+    public void getRandomCodeImage(HttpServletResponse response) throws Exception {
+        String imageUrl = codeImageService.getRandomCodeImageUrl();
+        if (imageUrl == null) {
+            response.setStatus(404);
+            return;
+        }
+
+        // 通过URL读取图片内容
+        URL url = new URL(imageUrl);
+        BufferedImage bufferedImage;
+        try (InputStream inputStream = url.openStream()) {
+            bufferedImage = ImageIO.read(inputStream);
+        }
+
+        if (bufferedImage == null) {
+            response.setStatus(404);
+            return;
+        }
+
+        // 设置响应头
+        response.setContentType("image/png");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+
+        // 输出图片流
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(bufferedImage, "png", outputStream);
+            response.getOutputStream().write(outputStream.toByteArray());
+        }
     }
 
     @GetMapping("/{id}")

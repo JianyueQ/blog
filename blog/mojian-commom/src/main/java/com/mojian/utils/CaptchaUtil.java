@@ -3,6 +3,7 @@ package com.mojian.utils;
 import com.mojian.common.RedisConstants;
 import com.mojian.dto.Captcha;
 import com.mojian.exception.ServiceException;
+import com.mojian.service.CodeImageCacheService;
 import org.apache.commons.lang3.RandomUtils;
 
 import javax.imageio.ImageIO;
@@ -80,18 +81,27 @@ public class CaptchaUtil {
 
     /**
      * 获取验证码资源图
+     * <p>
+     * place=0：通过验证码图片库获取随机图片（不再走HTTP请求，直接调用Service）
+     * place=1：从本地文件获取图片
      **/
     public static BufferedImage getBufferedImage(Integer place) {
         try {
-            //随机图片
             int nonce = getNonceByRange(0, 1000);
-            //获取网络资源图片
+            // 获取网络资源图片（通过验证码图片库）
             if (0 == place) {
-//                String imgUrl = String.format(IMG_URL, nonce);
                 URL url = new URL(IMG_URL);
                 return ImageIO.read(url.openStream());
+            } else if (1 == place) {
+                // 通过 Spring 获取 CodeImageCacheService，直接调用获取随机图片 URL
+                CodeImageCacheService cacheService = SpringUtil.getBean(CodeImageCacheService.class);
+                String imageUrl = cacheService.getRandomCodeImageUrl();
+                if (imageUrl == null) {
+                    throw new ServiceException("验证码图片库为空，请先上传图片");
+                }
+                return ImageIO.read(new URL(imageUrl));
             }
-            //获取本地图片
+            // 获取本地图片
             else {
                 String imgPath = IMG_PATH.formatted(nonce);
                 File file = new File(imgPath);
@@ -99,7 +109,6 @@ public class CaptchaUtil {
             }
         } catch (Exception e) {
             System.out.println("获取拼图资源失败");
-            //异常处理
             return null;
         }
     }
@@ -295,7 +304,7 @@ public class CaptchaUtil {
         //新建的图像根据轮廓图颜色赋值，源图生成遮罩
         cutByTemplate(canvasImage, blockImage, blockWidth, blockHeight, blockRadius, blockX, blockY);
         // 移动横坐标
-        String nonceStr = UUID.randomUUID().toString().replaceAll("-", "");
+        String nonceStr = UUID.randomUUID().toString().replace("-", "");
         // 缓存
         saveImageCode(nonceStr,String.valueOf(blockX));
         //设置返回参数

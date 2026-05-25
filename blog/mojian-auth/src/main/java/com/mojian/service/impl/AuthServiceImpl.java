@@ -350,6 +350,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Captcha getCaptcha() {
         Captcha captcha = new Captcha();
+        //从redis中获取
+        captcha.setPlace(1);
         CaptchaUtil.getCaptcha(captcha);
         return captcha;
     }
