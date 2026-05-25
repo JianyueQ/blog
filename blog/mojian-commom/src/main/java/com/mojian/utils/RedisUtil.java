@@ -3,6 +3,7 @@ package com.mojian.utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -206,10 +207,38 @@ public class RedisUtil {
     }
 
     /**
+     * 获取ZSet结构中的所有属性（带score）
+     */
+    public Set<ZSetOperations.TypedTuple<Object>> zRangeWithScores(String key, long start, long end) {
+        return redisTemplate.opsForZSet().rangeWithScores(key, start, end);
+    }
+
+    /**
      * 获取ZSet结构中的属性
      */
     public Set<Object> zRangeByScore(String key, double min, double max) {
         return redisTemplate.opsForZSet().rangeByScore(key, min, max);
+    }
+
+    /**
+     * ZSet中指定元素的score增加
+     */
+    public Double zIncrementScore(String key, Object value, double delta) {
+        return redisTemplate.opsForZSet().incrementScore(key, value, delta);
+    }
+
+    /**
+     * 判断元素是否在ZSet中
+     */
+    public Boolean zIsMember(String key, Object value) {
+        return redisTemplate.opsForZSet().score(key, value) != null;
+    }
+
+    /**
+     * 从ZSet中删除属性
+     */
+    public Long zRemove(String key, Object... values) {
+        return redisTemplate.opsForZSet().remove(key, values);
     }
 
     /**

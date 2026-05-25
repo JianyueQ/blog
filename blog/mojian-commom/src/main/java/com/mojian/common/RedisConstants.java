@@ -117,4 +117,14 @@ public class RedisConstants {
      * 网站配置
      */
     public static final String WEB_CONFIG_KEY = "sys_webconfig";
+
+    /**
+     * Redis缓存Key：验证码图片URL Hash
+     */
+    public static final String CODE_IMAGE_URLS_KEY = "code:image:urls";
+
+    /**
+     * Redis缓存Key：验证码图片权重 ZSet
+     */
+    public static final String CODE_IMAGE_SCORES_KEY = "code:image:scores";
 }
