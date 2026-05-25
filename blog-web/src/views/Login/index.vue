@@ -16,7 +16,7 @@
         <el-tooltip
           class="item"
           effect="dark"
-          :content="currentForm === 'login' ? '账号密码登录' : '扫码登录'"
+          :content="currentForm === 'login' ? '账号密码登录' : '其他方式登录'"
           placement="top"
         >
           <button class="switch-form-btn" @click="handleSwitchForm">
@@ -27,27 +27,8 @@
             ></i>
           </button>
         </el-tooltip>
-        <!-- 微信扫码登录 -->
+        <!-- 第三方登录方式 -->
         <div v-show="currentForm === 'login'" class="form-container">
-<!--          <div class="qrcode-content">-->
-<!--            <div class="qrcode-box">-->
-<!--              &lt;!&ndash; 这里放二维码图片 &ndash;&gt;-->
-<!--              <img-->
-<!--                v-lazy="'https://img.shiyit.com/qrcode.jpg'"-->
-<!--                :key="'https://img.shiyit.com/qrcode.jpg'"-->
-<!--                alt="微信二维码"-->
-<!--              />-->
-<!--            </div>-->
-<!--            <p class="qrcode-tip">-->
-<!--              登录验证码：-->
-<!--              <span class="code-text">{{ wechatForm.code }}</span>-->
-<!--              <span class="code-text" v-if="wechatForm.code === '验证码已失效'">-->
-<!--                <i class="fas fa-sync-alt" @click="getWechatLoginCode"></i>-->
-<!--              </span>-->
-<!--            </p>-->
-<!--            <p class="qrcode-tip">微信扫码关注公众号，并发送验证码</p>-->
-<!--          </div>-->
-
           <div class="divider">
             <el-divider>其他登录方式</el-divider>
           </div>
@@ -267,8 +248,8 @@ import {
   sendEmailCodeApi,
   registerApi,
   forgotPasswordApi,
-  getWechatLoginCodeApi,
-  getWechatIsLoginApi,
+  // getWechatLoginCodeApi,
+  // getWechatIsLoginApi,
   getAuthRenderApi,
   getCaptchaSwitchApi,
 } from "@/api/auth";
@@ -283,10 +264,10 @@ export default {
     return {
       currentForm: "login",
       loading: false,
-      wechatForm: {
-        code: "",
-        showQrcode: false,
-      },
+      // wechatForm: {
+      //   code: "",
+      //   showQrcode: false,
+      // },
       countdown: 0,
       loginForm: {
         username: "",
@@ -376,7 +357,7 @@ export default {
         delete this.loginTypes[key];
       }
     });
-    this.getWechatLoginCode();
+    // this.getWechatLoginCode();
     this.$nextTick(() => {
       disableScroll();
     });
@@ -430,9 +411,9 @@ export default {
       this.currentForm = form;
       this.loading = false;
       this.clearTimer();
-      if (form === "login") {
-        this.getWechatLoginCode();
-      }
+      // if (form === "login") {
+      //   this.getWechatLoginCode();
+      // }
     },
     /**
      * 登录
@@ -516,11 +497,11 @@ export default {
      * 第三方登录
      */
     handleThirdPartyLogin(type) {
-      if (type === "wechat") {
-        this.wechatForm.showQrcode = true;
-        this.getWechatLoginCode();
-        return;
-      }
+      // if (type === "wechat") {
+      //   this.wechatForm.showQrcode = true;
+      //   this.getWechatLoginCode();
+      //   return;
+      // }
       getAuthRenderApi(type).then((res) => {
         //将当前地址存到cookie中
         if (!window.location.href.includes("login")) {
@@ -529,41 +510,41 @@ export default {
         window.open(res.data, "_self");
       });
     },
-    /**
-     * 获取微信登录验证码
-     */
-    getWechatLoginCode() {
-      getWechatLoginCodeApi().then((res) => {
-        this.wechatForm.code = res.data;
-        this.pollingWechatIsLogin();
-        // 开始倒计时
-        let countdown = 60;
-        this.codeTimer = setInterval(() => {
-          countdown--;
-          if (countdown <= 0) {
-            clearInterval(this.codeTimer);
-            clearInterval(this.pollingTimer);
-            this.wechatForm.code = "验证码已失效";
-          }
-        }, 1000);
-      });
-    },
-    /**
-     * 定时轮询获取微信登录状态
-     */
-    pollingWechatIsLogin() {
-      this.pollingTimer = setInterval(() => {
-        getWechatIsLoginApi(this.wechatForm.code).then((res) => {
-          if (res.code === 200) {
-            this.$store.commit("SET_TOKEN", res.data.token);
-            this.$store.commit("SET_USER_INFO", res.data);
-            clearInterval(this.pollingTimer);
-            this.$message.success("登录成功");
-            this.handleClose();
-          }
-        });
-      }, 1000);
-    },
+    // /**
+    //  * 获取微信登录验证码
+    //  */
+    // getWechatLoginCode() {
+    //   getWechatLoginCodeApi().then((res) => {
+    //     this.wechatForm.code = res.data;
+    //     this.pollingWechatIsLogin();
+    //     // 开始倒计时
+    //     let countdown = 60;
+    //     this.codeTimer = setInterval(() => {
+    //       countdown--;
+    //       if (countdown <= 0) {
+    //         clearInterval(this.codeTimer);
+    //         clearInterval(this.pollingTimer);
+    //         this.wechatForm.code = "验证码已失效";
+    //       }
+    //     }, 1000);
+    //   });
+    // },
+    // /**
+    //  * 定时轮询获取微信登录状态
+    //  */
+    // pollingWechatIsLogin() {
+    //   this.pollingTimer = setInterval(() => {
+    //     getWechatIsLoginApi(this.wechatForm.code).then((res) => {
+    //       if (res.code === 200) {
+    //         this.$store.commit("SET_TOKEN", res.data.token);
+    //         this.$store.commit("SET_USER_INFO", res.data);
+    //         clearInterval(this.pollingTimer);
+    //         this.$message.success("登录成功");
+    //         this.handleClose();
+    //       }
+    //     });
+    //   }, 1000);
+    // },
 
     /**
      * 关闭登录弹窗
@@ -621,9 +602,9 @@ export default {
       if (this.codeTimer) {
         clearInterval(this.codeTimer);
       }
-      if (this.pollingTimer) {
-        clearInterval(this.pollingTimer);
-      }
+      // if (this.pollingTimer) {
+      //   clearInterval(this.pollingTimer);
+      // }
     },
 
     handleSwitchForm() {
