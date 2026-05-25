@@ -100,5 +100,5 @@ public class CodeImage implements Serializable {
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = DateUtil.YYYY_MM_DD_HH_MM_SS, timezone = "GMT+8")
-    private LocalDateTime createTime;
+    private String createTime;
 }

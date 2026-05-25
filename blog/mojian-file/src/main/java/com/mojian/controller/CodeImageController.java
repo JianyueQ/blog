@@ -153,7 +153,8 @@ public class CodeImageController {
         codeImage.setThFilename(fileInfo.getThFilename());
         codeImage.setThSize(fileInfo.getThSize());
         codeImage.setThContentType(fileInfo.getThContentType());
-        codeImage.setSource(source);
+        codeImage.setSource(source == null ? DateUtil.getDate() : source);
+        codeImage.setCreateTime(DateUtil.getDateTime());
         return codeImage;
     }
 }

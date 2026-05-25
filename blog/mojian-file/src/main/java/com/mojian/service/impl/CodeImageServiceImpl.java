@@ -12,6 +12,9 @@ import com.mojian.service.CodeImageService;
 import com.mojian.utils.PageUtil;
 import com.mojian.utils.RedisUtil;
 import lombok.RequiredArgsConstructor;
+import org.dromara.x.file.storage.core.FileStorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,12 +40,16 @@ public class CodeImageServiceImpl extends ServiceImpl<CodeImageMapper, CodeImage
 
     private final RedisUtil redisUtil;
     private final CodeImageCacheService codeImageCacheService;
+    private final FileStorageService fileStorageService;
+
+    Logger log = LoggerFactory.getLogger(CodeImageServiceImpl.class);
+
     @Override
     public IPage<CodeImage> selectPage(CodeImage codeImage) {
         LambdaQueryWrapper<CodeImage> wrapper = new LambdaQueryWrapper<>();
         // 构建查询条件
         wrapper.like(codeImage.getFilename() != null, CodeImage::getFilename, codeImage.getFilename());
-        wrapper.eq(codeImage.getSource() != null, CodeImage::getSource, codeImage.getSource());
+        wrapper.like(codeImage.getSource() != null, CodeImage::getSource, codeImage.getSource());
         wrapper.orderByDesc(CodeImage::getCreateTime);
         return page(PageUtil.getPage(), wrapper);
     }
@@ -92,7 +99,14 @@ public class CodeImageServiceImpl extends ServiceImpl<CodeImageMapper, CodeImage
     public boolean deleteByIds(List<String> ids) {
         boolean result = removeByIds(ids);
         if (result) {
+            //获取hash中的 url
             for (String id : ids) {
+                String url = redisUtil.hGet(RedisConstants.CODE_IMAGE_URLS_KEY, id).toString();
+                try {
+                    fileStorageService.delete(url);
+                } catch (Exception e) {
+                    log.error("删除文件失败：{}", e.getMessage());
+                }
                 // Hash删除
                 redisUtil.hDel(RedisConstants.CODE_IMAGE_URLS_KEY, id);
                 // ZSet删除

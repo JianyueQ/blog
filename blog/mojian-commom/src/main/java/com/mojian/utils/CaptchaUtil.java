@@ -291,7 +291,10 @@ public class CaptchaUtil {
         //获取资源图
         BufferedImage canvasImage = getBufferedImage(captcha.getPlace());
         if (canvasImage == null) {
-            throw new ServiceException("获取验证码图片资源失败，请稍后重试");
+            canvasImage = getBufferedImage(1);
+            if (canvasImage == null){
+                throw new ServiceException("获取验证码图片资源失败，请稍后重试");
+            }
         }
 
         //调整原图到指定大小
