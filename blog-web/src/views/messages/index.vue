@@ -111,7 +111,8 @@ export default {
   },
   computed: {
     cover() {
-      var cover = "https://img.shiyit.com/1642481294001.png";
+      // TODO: 修复图片URL连接关闭问题 - GET https://img.shiyit.com/beijing.jpg net::ERR_CONNECTION_CLOSED
+      var cover = '';
       return "background: url(" + cover + ") center center / cover no-repeat";
     }
   }

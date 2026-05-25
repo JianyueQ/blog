@@ -17,9 +17,9 @@
             <Logo :size="80" class="floating-logo" :color="logoColor" />
           </div>
           <h1 class="brand-title">{{ settings.title }}</h1>
-          <p class="brand-description">
+          <!-- <p class="brand-description">
             基于 Vue3 + TypeScript 打造的现代化博客系统
-          </p>
+          </p> -->
         </div>
       </div>
     </div>
@@ -53,7 +53,7 @@
             @click="loginType = 'qrcode'"
           >
             <el-icon><component :is="QrCode" /></el-icon>
-            扫码登录
+            其他登录方式
           </div>
         </div>
 
@@ -98,7 +98,7 @@
             </el-button>
           </el-form>
 
-          <div v-else class="qrcode-box">
+          <!-- <div v-else class="qrcode-box">
             <div class="qrcode-wrapper">
               <div class="qrcode-scanner"></div>
               <img :src="qrCodeUrl" alt="二维码" class="qrcode-img" />
@@ -117,12 +117,12 @@
               <el-icon><Iphone /></el-icon>
               请使用手机扫码登录
             </p>
-          </div>
+          </div> -->
         </transition>
 
         <!-- 社交登录 -->
         <div class="social-login">
-          <div class="divider">其他登录方式</div>
+          <!-- <div class="divider">其他登录方式</div> -->
           <div class="social-icons">
             <div class="social-icon" @click="handleSocialLogin('wechat')">
               <svg-icon name="wechat" />
@@ -155,12 +155,12 @@
       </el-dialog>
 
       <!-- 页脚版权信息 -->
-      <footer class="footer">
+      <!-- <footer class="footer">
         <p>Copyright © 2024 Neat-Admin</p>
         <a href="https://beian.miit.gov.cn/" target="_blank"
           >湘ICP备2022002110号-1</a
         >
-      </footer>
+      </footer> -->
     </div>
   </div>
 </template>
@@ -201,15 +201,15 @@ const loginFormRef = ref<FormInstance>();
 const loading = ref(false);
 const rememberMe = ref(false);
 const loginType = ref("account");
-const qrCodeUrl = ref("https://img.shiyit.com/qrcode.jpg");
+// const qrCodeUrl = ref("https://img.shiyit.com/qrcode.jpg");
 const qrCodeExpired = ref(false);
 
 const showSliderVerify = ref(false);
 const sliderVerifyRef = ref();
 
 const loginForm = reactive({
-  username: "test",
-  password: "123456",
+  username: "",
+  password: "",
   rememberMe: false,
   source: "ADMIN",
   nonceStr: "",
@@ -219,11 +219,11 @@ const loginForm = reactive({
 const rules = {
   username: [
     { required: true, message: "请输入用户名", trigger: "blur" },
-    { min: 3, max: 20, message: "长度在 3 到 20 个字符", trigger: "blur" },
+    // { min: 3, max: 20, message: "长度在 3 到 20 个字符", trigger: "blur" },
   ],
   password: [
     { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, max: 20, message: "长度在 6 到 20 个字符", trigger: "blur" },
+    // { min: 6, max: 20, message: "长度在 6 到 20 个字符", trigger: "blur" },
   ],
 };
 

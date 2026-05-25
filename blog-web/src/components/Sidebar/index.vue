@@ -207,7 +207,8 @@ export default {
       left: 0;
       right: 0;
       height: 120px;
-      background-image: url('https://img.shiyit.com/beijing.jpg');
+      //todo: 添加背景图片
+      //background-image: url('');
       background-size: cover;
       background-position: center;
       transition: opacity 0.3s ease;

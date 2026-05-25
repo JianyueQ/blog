@@ -29,24 +29,24 @@
         </el-tooltip>
         <!-- 微信扫码登录 -->
         <div v-show="currentForm === 'login'" class="form-container">
-          <div class="qrcode-content">
-            <div class="qrcode-box">
-              <!-- 这里放二维码图片 -->
-              <img
-                v-lazy="'https://img.shiyit.com/qrcode.jpg'"
-                :key="'https://img.shiyit.com/qrcode.jpg'"
-                alt="微信二维码"
-              />
-            </div>
-            <p class="qrcode-tip">
-              登录验证码：
-              <span class="code-text">{{ wechatForm.code }}</span>
-              <span class="code-text" v-if="wechatForm.code === '验证码已失效'">
-                <i class="fas fa-sync-alt" @click="getWechatLoginCode"></i>
-              </span>
-            </p>
-            <p class="qrcode-tip">微信扫码关注公众号，并发送验证码</p>
-          </div>
+<!--          <div class="qrcode-content">-->
+<!--            <div class="qrcode-box">-->
+<!--              &lt;!&ndash; 这里放二维码图片 &ndash;&gt;-->
+<!--              <img-->
+<!--                v-lazy="'https://img.shiyit.com/qrcode.jpg'"-->
+<!--                :key="'https://img.shiyit.com/qrcode.jpg'"-->
+<!--                alt="微信二维码"-->
+<!--              />-->
+<!--            </div>-->
+<!--            <p class="qrcode-tip">-->
+<!--              登录验证码：-->
+<!--              <span class="code-text">{{ wechatForm.code }}</span>-->
+<!--              <span class="code-text" v-if="wechatForm.code === '验证码已失效'">-->
+<!--                <i class="fas fa-sync-alt" @click="getWechatLoginCode"></i>-->
+<!--              </span>-->
+<!--            </p>-->
+<!--            <p class="qrcode-tip">微信扫码关注公众号，并发送验证码</p>-->
+<!--          </div>-->
 
           <div class="divider">
             <el-divider>其他登录方式</el-divider>
