@@ -6,7 +6,9 @@ import com.mojian.common.Result;
 import com.mojian.dto.Captcha;
 import com.mojian.dto.EmailRegisterDto;
 import com.mojian.dto.LoginDTO;
+import com.mojian.entity.SysThirdPartyConfig;
 import com.mojian.service.AuthService;
+import com.mojian.service.SysThirdPartyConfigService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import com.mojian.dto.user.*;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Tag(name = "认证管理")
@@ -25,6 +28,8 @@ import java.io.IOException;
 public class AuthController {
 
     private final AuthService authService;
+
+    private final SysThirdPartyConfigService sysThirdPartyConfigService;
 
     @RequestMapping("/api/auth/render/{source}")
     @Operation(summary = "获取第三方授权地址")
@@ -97,6 +102,13 @@ public class AuthController {
     @GetMapping("/auth/info")
     public Result<LoginUserInfo> getUserInfo(@RequestParam(defaultValue = "admin") String source) {
         return Result.success(authService.getLoginUserInfo(source));
+    }
+
+    @SaIgnore
+    @Operation(summary = "获取已启用的第三方登录配置列表")
+    @GetMapping({"/api/thirdPartyConfig/enabledList", "/thirdPartyConfig/enabledList"})
+    public Result<List<SysThirdPartyConfig>> getEnabledThirdPartyConfig() {
+        return Result.success(sysThirdPartyConfigService.getEnabledList());
     }
 
 }

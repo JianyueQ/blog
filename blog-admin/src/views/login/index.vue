@@ -121,17 +121,22 @@
         </transition>
 
         <!-- 社交登录 -->
-        <div class="social-login">
-          <!-- <div class="divider">其他登录方式</div> -->
+        <div class="social-login" v-if="thirdPartyConfigs.length > 0">
           <div class="social-icons">
-            <div class="social-icon" @click="handleSocialLogin('wechat')">
-              <svg-icon name="wechat" />
-            </div>
-            <div class="social-icon" @click="handleSocialLogin('qq')">
-              <svg-icon name="qq" />
-            </div>
-            <div class="social-icon" @click="handleSocialLogin('gitee')">
-              <svg-icon name="gitee" />
+            <div
+              v-for="item in thirdPartyConfigs"
+              :key="item.configKey"
+              class="social-icon"
+              :title="item.configName + '登录'"
+              @click="handleSocialLogin(item)"
+            >
+              <img
+                v-if="item.icon && item.icon.startsWith('http')"
+                :src="item.icon"
+                :alt="item.configName"
+                class="social-icon-img"
+              />
+              <svg-icon v-else :name="getSvgName(item.icon || item.configKey)" />
             </div>
           </div>
         </div>
@@ -170,11 +175,16 @@ import router from "@/router";
 import type { FormInstance } from "element-plus";
 import { ElMessage } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
+import { setToken } from "@/utils/auth";
 import { useSettingsStore } from "@/store/modules/settings";
 import Logo from "@/layouts/components/Sidebar/Logo.vue";
 import settings from "@/config/settings";
 import SliderVerify from "./components/SliderVerify.vue";
 import { getCaptchaSwitchApi } from "@/api/system/auth";
+import {
+  getEnabledThirdPartyConfigApi,
+  getAuthRenderUrlApi,
+} from "@/api/system/thirdPartyConfig";
 
 const QrCode = markRaw({
   name: "QrCode",
@@ -203,6 +213,9 @@ const rememberMe = ref(false);
 const loginType = ref("account");
 // const qrCodeUrl = ref("https://img.shiyit.com/qrcode.jpg");
 const qrCodeExpired = ref(false);
+
+// 第三方登录配置列表（从接口动态加载）
+const thirdPartyConfigs = ref<any[]>([]);
 
 const showSliderVerify = ref(false);
 const sliderVerifyRef = ref();
@@ -284,8 +297,24 @@ const handleLogin = async () => {
   });
 };
 
-const handleSocialLogin = (type: string) => {
-  ElMessage.success(type + "登录测试");
+const handleSocialLogin = async (item: any) => {
+  try {
+    const res = await getAuthRenderUrlApi(item.configKey);
+    if (res.data) {
+      // 跳转到第三方授权页面
+      window.location.href = res.data;
+    } else {
+      ElMessage.error("获取授权地址失败");
+    }
+  } catch (e) {
+    ElMessage.error(item.configName + "登录失败，请稍后重试");
+  }
+};
+
+/** 从图标字段中提取 SVG 名称（去掉 .svg 后缀） */
+const getSvgName = (icon: string) => {
+  if (!icon) return '';
+  return icon.replace(/\.svg$/, '');
 };
 
 const refreshQrCode = async () => {
@@ -307,6 +336,36 @@ watch(loginType, (newVal) => {
 
 onUnmounted(() => {
   clearInterval(qrCodeTimer);
+});
+
+/** 加载已启用的第三方登录配置 */
+const loadThirdPartyConfigs = async () => {
+  try {
+    const res = await getEnabledThirdPartyConfigApi();
+    thirdPartyConfigs.value = res.data || [];
+  } catch (e) {
+    // 接口异常时不阻塞页面
+    console.warn('加载第三方登录配置失败', e);
+  }
+};
+
+/** 处理第三方登录回调（从 URL 中获取 token） */
+const handleCallbackToken = () => {
+  const url = new URL(window.location.href);
+  const token = url.searchParams.get('token');
+  if (token) {
+    setToken(token);
+    // 清除 URL 中的 token 参数
+    url.searchParams.delete('token');
+    window.history.replaceState({}, '', url.toString());
+    router.push('/');
+    ElMessage.success('第三方登录成功');
+  }
+};
+
+onMounted(() => {
+  loadThirdPartyConfigs();
+  handleCallbackToken();
 });
 
 // 添加 logo 颜色计算
@@ -628,6 +687,12 @@ const logoColor = computed(() => {
           transform: translateY(-2px);
           background: var(--el-color-primary-light-9);
           color: var(--el-color-primary);
+        }
+
+        .social-icon-img {
+          width: 22px;
+          height: 22px;
+          object-fit: contain;
         }
       }
     }

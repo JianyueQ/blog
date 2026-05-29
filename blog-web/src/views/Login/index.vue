@@ -33,17 +33,22 @@
             <el-divider>其他登录方式</el-divider>
           </div>
 
-          <div class="third-party-login">
+          <div class="third-party-login" v-if="thirdPartyConfigs.length > 0">
             <div
-              v-for="(item, type) in loginTypes"
-              :key="type"
+              v-for="item in thirdPartyConfigs"
+              :key="item.configKey"
               class="login-icon-wrapper"
-              @click="handleThirdPartyLogin(type)"
-              v-if="type !== 'wechat'"
+              @click="handleThirdPartyLogin(item.configKey)"
             >
-              <el-tooltip :content="item.title" placement="top">
-                <div :class="['login-icon', type]">
-                  <i :class="item.icon"></i>
+              <el-tooltip :content="item.configName + '登录'" placement="top">
+                <div :class="['login-icon', item.configKey]">
+                  <img
+                    v-if="item.icon && item.icon.startsWith('http')"
+                    :src="item.icon"
+                    :alt="item.configName"
+                    class="login-icon-img"
+                  />
+                  <i v-else :class="getIconClass(item.icon || item.configKey)"></i>
                 </div>
               </el-tooltip>
             </div>
@@ -248,12 +253,12 @@ import {
   sendEmailCodeApi,
   registerApi,
   forgotPasswordApi,
-  // getWechatLoginCodeApi,
-  // getWechatIsLoginApi,
+  getEnabledThirdPartyConfigApi,
   getAuthRenderApi,
   getCaptchaSwitchApi,
 } from "@/api/auth";
 import { setCookie } from "@/utils/cookie";
+import { setToken } from "@/utils/cookie";
 import SliderVerify from "./components/SliderVerify.vue";
 export default {
   name: "Login",
@@ -285,28 +290,7 @@ export default {
         code: "",
         password: "",
       },
-      loginTypes: {
-        github: {
-          title: "GitHub账号登录",
-          icon: "fab fa-github",
-        },
-        qq: {
-          title: "QQ账号登录",
-          icon: "fab fa-qq",
-        },
-        wechat: {
-          title: "微信扫码登录",
-          icon: "fab fa-weixin",
-        },
-        gitee: {
-          title: "码云账号登录",
-          icon: "fab fa-git-alt",
-        },
-        weibo: {
-          title: "微博账号登录",
-          icon: "fab fa-weibo",
-        },
-      },
+      thirdPartyConfigs: [], // 从接口动态获取已启用的第三方登录配置
       codeSending: false,
       codeButtonText: "发送验证码",
       codeTimer: null,
@@ -352,12 +336,9 @@ export default {
   },
 
   created() {
-    Object.keys(this.loginTypes).forEach((key) => {
-      if (!this.$store.state.webSiteInfo?.loginTypeList?.includes(key)) {
-        delete this.loginTypes[key];
-      }
-    });
     // this.getWechatLoginCode();
+    this.loadThirdPartyConfigs();
+    this.handleCallbackToken();
     this.$nextTick(() => {
       disableScroll();
     });
@@ -494,14 +475,49 @@ export default {
     },
 
     /**
+     * 加载已启用的第三方登录配置
+     */
+    async loadThirdPartyConfigs() {
+      try {
+        const res = await getEnabledThirdPartyConfigApi();
+        this.thirdPartyConfigs = res.data || [];
+      } catch (e) {
+        console.warn('加载第三方登录配置失败', e);
+      }
+    },
+    /**
+     * 处理 OAuth 回调 token
+     */
+    handleCallbackToken() {
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get('token');
+      if (token) {
+        setToken(token);
+        url.searchParams.delete('token');
+        window.history.replaceState({}, '', url.toString());
+        this.$store.commit('SET_TOKEN', token);
+        this.$message.success('第三方登录成功');
+        this.backToHome();
+      }
+    },
+    /**
+     * 根据图标名称映射图标 class
+     */
+    getIconClass(iconName) {
+      const iconMap = {
+        'github.svg': 'fab fa-github',
+        'gitee.svg': 'fab fa-git-alt',
+        'qq.svg': 'fab fa-qq',
+        'github': 'fab fa-github',
+        'gitee': 'fab fa-git-alt',
+        'qq': 'fab fa-qq',
+      };
+      return iconMap[iconName] || 'fas fa-sign-in-alt';
+    },
+    /**
      * 第三方登录
      */
     handleThirdPartyLogin(type) {
-      // if (type === "wechat") {
-      //   this.wechatForm.showQrcode = true;
-      //   this.getWechatLoginCode();
-      //   return;
-      // }
       getAuthRenderApi(type).then((res) => {
         //将当前地址存到cookie中
         if (!window.location.href.includes("login")) {
@@ -742,14 +758,14 @@ export default {
   &.qq {
     color: #12b7f5;
   }
-  &.wechat {
-    color: #07c160;
-  }
   &.gitee {
     color: #c71d23;
   }
-  &.weibo {
-    color: #e6162d;
+
+  .login-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
   }
 }
 

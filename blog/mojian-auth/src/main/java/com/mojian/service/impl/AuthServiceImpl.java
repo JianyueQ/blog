@@ -9,16 +9,18 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mojian.common.Constants;
 import com.mojian.common.RedisConstants;
-import com.mojian.config.properties.*;
+import com.mojian.config.properties.WechatProperties;
 import com.mojian.dto.Captcha;
 import com.mojian.dto.EmailRegisterDto;
 import com.mojian.dto.LoginDTO;
 import com.mojian.dto.user.LoginUserInfo;
 import com.mojian.entity.SysConfig;
 import com.mojian.entity.SysRole;
+import com.mojian.entity.SysThirdPartyConfig;
 import com.mojian.enums.LoginTypeEnum;
 import com.mojian.mapper.SysConfigMapper;
 import com.mojian.service.AuthService;
+import com.mojian.service.SysThirdPartyConfigService;
 import com.mojian.entity.SysUser;
 import com.mojian.enums.MenuTypeEnum;
 import com.mojian.exception.ServiceException;
@@ -77,17 +79,11 @@ public class AuthServiceImpl implements AuthService {
     };
     private final SysRoleMapper sysRoleMapper;
 
-    private final GiteeConfigProperties giteeConfigProperties;
-
-    private final GithubConfigProperties githubConfigProperties;
-
-    private final QqConfigProperties qqConfigProperties;
-
-    private final WeiboConfigProperties weiboConfigProperties;
-
     private final WechatProperties wechatProperties;
 
     private final SysConfigMapper sysConfigMapper;
+
+    private final SysThirdPartyConfigService sysThirdPartyConfigService;
 
 
     @Override
@@ -417,34 +413,40 @@ public class AuthServiceImpl implements AuthService {
 
 
     private @NotNull AuthRequest getAuthRequest(String source) {
+        // 从数据库获取第三方登录配置
+        SysThirdPartyConfig config = sysThirdPartyConfigService.getByConfigKey(source);
+        if (config == null) {
+            throw new ServiceException("未配置" + source + "第三方登录");
+        }
+
         AuthRequest authRequest = null;
         switch (source) {
             case "gitee":
                 authRequest = new AuthGiteeRequest(AuthConfig.builder()
-                        .clientId(giteeConfigProperties.getAppId())
-                        .clientSecret(giteeConfigProperties.getAppSecret())
-                        .redirectUri(giteeConfigProperties.getRedirectUrl())
+                        .clientId(config.getAppId())
+                        .clientSecret(config.getAppSecret())
+                        .redirectUri(config.getRedirectUrl())
                         .build());
                 break;
             case "qq":
                 authRequest = new AuthQqRequest(AuthConfig.builder()
-                        .clientId(qqConfigProperties.getAppId())
-                        .clientSecret(qqConfigProperties.getAppSecret())
-                        .redirectUri(qqConfigProperties.getRedirectUrl())
+                        .clientId(config.getAppId())
+                        .clientSecret(config.getAppSecret())
+                        .redirectUri(config.getRedirectUrl())
                         .build());
                 break;
             case "weibo":
                 authRequest = new AuthWeiboRequest(AuthConfig.builder()
-                        .clientId(weiboConfigProperties.getAppId())
-                        .clientSecret(weiboConfigProperties.getAppSecret())
-                        .redirectUri(weiboConfigProperties.getRedirectUrl())
+                        .clientId(config.getAppId())
+                        .clientSecret(config.getAppSecret())
+                        .redirectUri(config.getRedirectUrl())
                         .build());
                 break;
             case "github":
                 authRequest = new AuthGithubRequest(AuthConfig.builder()
-                        .clientId(githubConfigProperties.getAppId())
-                        .clientSecret(githubConfigProperties.getAppSecret())
-                        .redirectUri(githubConfigProperties.getRedirectUrl())
+                        .clientId(config.getAppId())
+                        .clientSecret(config.getAppSecret())
+                        .redirectUri(config.getRedirectUrl())
                         .build());
                 break;
             default:

@@ -93,6 +93,16 @@ export function getWechatIsLoginApi(code) {
 } 
 
 /**
+ * 获取已启用的第三方登录配置列表
+ */
+export function getEnabledThirdPartyConfigApi() {
+  return request({
+    url: '/api/thirdPartyConfig/enabledList',
+    method: 'get'
+  })
+}
+
+/**
  * 获取第三方授权地址
  */
 export function getAuthRenderApi(source) {
