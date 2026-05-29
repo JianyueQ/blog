@@ -5,6 +5,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mojian.common.Constants;
 import com.mojian.common.RedisConstants;
@@ -267,13 +268,13 @@ public class AuthServiceImpl implements AuthService {
 
         if (response.getData() == null) {
             log.info("用户取消了 {} 第三方登录",source);
-            httpServletResponse.sendRedirect("https://www.shiyit.com");
+            httpServletResponse.sendRedirect(Constants.LOGIN_URL);
             return;
         }
-        String result = com.alibaba.fastjson2.JSONObject.toJSONString(response.getData());
+        String result = JSONObject.toJSONString(response.getData());
         log.info("第三方登录验证结果:{}", result);
 
-        com.alibaba.fastjson2.JSONObject jsonObject = JSON.parseObject(result);
+        JSONObject jsonObject = JSON.parseObject(result);
         Object uuid = jsonObject.get("uuid");
         // 获取用户ip信息
         String ipAddress = IpUtil.getIp();
@@ -299,7 +300,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         StpUtil.login(user.getId());
-        httpServletResponse.sendRedirect("https://www.shiyit.com/?token=" + StpUtil.getTokenValue());
+        httpServletResponse.sendRedirect(Constants.LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
     }
 
     @Override
