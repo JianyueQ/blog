@@ -3,6 +3,7 @@ package com.mojian.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mojian.exception.ServiceException;
 import com.mojian.service.SysRoleService;
 import com.mojian.utils.PageUtil;
 import com.mojian.entity.SysRole;
@@ -31,7 +32,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     public void addRole(SysRole role) {
         // 检查角色编码是否已存在
         if (checkCodeExists(role.getCode(), null)) {
-            throw new RuntimeException("角色编码已存在");
+            throw new ServiceException("角色编码已存在");
         }
         save(role);
     }
@@ -40,7 +41,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     public void updateRole(SysRole role) {
         // 检查角色是否存在
         if (getById(role.getId()) == null) {
-            throw new RuntimeException("角色不存在");
+            throw new ServiceException("角色不存在");
         }
         // 检查角色编码是否已存在
         if (checkCodeExists(role.getCode(), role.getId())) {
