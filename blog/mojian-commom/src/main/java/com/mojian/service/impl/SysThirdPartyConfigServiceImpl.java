@@ -57,7 +57,6 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
             item.setAppId(null);
             item.setAppSecret(null);
             item.setRedirectUrl(null);
-            item.setWebRedirectUrl(null);
         });
         return list;
     }

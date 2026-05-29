@@ -32,11 +32,8 @@ public class SysThirdPartyConfig implements Serializable {
     @Schema(description = "应用密钥")
     private String appSecret;
 
-    @Schema(description = "后台管理端回调地址")
+    @Schema(description = "回调地址")
     private String redirectUrl;
-
-    @Schema(description = "前台用户端回调地址")
-    private String webRedirectUrl;
 
     @Schema(description = "图标URL")
     private String icon;

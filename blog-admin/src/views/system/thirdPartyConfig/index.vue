@@ -48,7 +48,7 @@
             <el-tag v-else type="danger" size="small">未配置</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="后台回调地址" align="center" prop="redirectUrl" show-overflow-tooltip min-width="200" />
+        <el-table-column label="回调地址" align="center" prop="redirectUrl" show-overflow-tooltip min-width="200" />
         <el-table-column label="状态" align="center" width="100">
           <template #default="scope">
             <el-switch
@@ -85,11 +85,8 @@
         <el-form-item label="AppSecret" prop="appSecret">
           <el-input v-model="form.appSecret" type="password" placeholder="请输入AppSecret（留空则不修改）" show-password />
         </el-form-item>
-        <el-form-item label="后台回调地址" prop="redirectUrl">
-          <el-input v-model="form.redirectUrl" placeholder="后台管理端回调地址" />
-        </el-form-item>
-        <el-form-item label="前台回调地址" prop="webRedirectUrl">
-          <el-input v-model="form.webRedirectUrl" placeholder="前台用户端回调地址" />
+        <el-form-item label="回调地址" prop="redirectUrl">
+          <el-input v-model="form.redirectUrl" placeholder="回调地址（后台和前台共用）" />
         </el-form-item>
         <el-form-item label="图标" prop="icon">
           <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
