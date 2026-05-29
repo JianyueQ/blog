@@ -30,6 +30,16 @@ public class FileStorageInit {
 
     @PostConstruct
     private void init(){
+        reloadStorage();
+    }
+
+    /**
+     * 重新加载存储配置（支持动态更新）
+     */
+    public void reloadStorage(){
+        // 清空现有的存储配置
+        service.getFileStorageList().clear();
+        
         List<SysFileOss> sysFileOssList = sysFileOssMapper.selectList(null);
 
         for (SysFileOss sysFileOss : sysFileOssList) {

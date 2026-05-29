@@ -10,6 +10,7 @@ import com.mojian.common.Result;
 import com.mojian.entity.FileDetail;
 import com.mojian.entity.SysFileOss;
 import com.mojian.exception.ServiceException;
+import com.mojian.init.FileStorageInit;
 import com.mojian.service.FileDetailService;
 import com.mojian.utils.DateUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +34,8 @@ public class FileController {
 
     private final FileStorageService fileStorageService;
 
+    private final FileStorageInit fileStorageInit;
+
 
     @SaCheckLogin
     @GetMapping("/list")
@@ -54,6 +57,8 @@ public class FileController {
     @Operation(summary = "添加存储平台配置")
     public Result<Void> addOss(@RequestBody SysFileOss sysFileOss) {
         fileDetailService.addOss(sysFileOss);
+        // 重新初始化文件存储服务
+        fileStorageInit.reloadStorage();
         if (sysFileOss.getIsEnable() == Constants.YES) {
             fileStorageService.getProperties().setDefaultPlatform(sysFileOss.getPlatform());
         }
@@ -66,6 +71,8 @@ public class FileController {
     @Operation(summary = "修改存储平台配置")
     public Result<Void> updateOss(@RequestBody SysFileOss sysFileOss) {
         fileDetailService.updateOss(sysFileOss);
+        // 重新初始化文件存储服务
+        fileStorageInit.reloadStorage();
         if (sysFileOss.getIsEnable() == Constants.YES) {
             fileStorageService.getProperties().setDefaultPlatform(sysFileOss.getPlatform());
         }
