@@ -36,7 +36,7 @@ export default {
   width: 1em;
   height: 1em;
   vertical-align: -0.15em;
-  fill: currentColor;
+  /* fill: currentColor;  // 已注释，使用 SVG 文件原始颜色 */
   overflow: hidden;
 }
 </style> 

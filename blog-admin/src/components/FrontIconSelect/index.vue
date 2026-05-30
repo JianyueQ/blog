@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    :title="mode === 'dark' ? '选择暗色图标' : '选择亮色图标'"
+    title="选择图标"
     width="700px"
     append-to-body
     top="5vh"
@@ -45,7 +45,6 @@ import SvgIcon from '@/components/SvgIcon/index.vue'
 const props = defineProps<{
   modelValue: string
   visible: boolean
-  mode?: 'light' | 'dark'  // 图标模式：亮色或暗色
 }>()
 
 const emit = defineEmits(['update:modelValue', 'update:visible'])
@@ -58,22 +57,15 @@ const dialogVisible = computed({
 const searchText = ref('')
 
 // 通过 import.meta.glob 获取前台 SVG 图标文件列表
-// 统一从 front/ 目录读取（亮色和暗色图标共存于同一目录）
 const frontSvgModules = import.meta.glob('../../icons/svg/front/*.svg', { eager: true })
 
-// 根据 mode 动态选择图标列表
-// 亮色图标：文件名不含 -dark 后缀；暗色图标：文件名含 -dark 后缀
+// 获取所有图标名称列表（包含亮色和暗色）
 const iconNames = computed(() => {
   return Object.keys(frontSvgModules)
     .map(path => {
       const filename = path.split('/').pop()?.replace('.svg', '') || ''
-      return { filename, fullPath: `front/${filename}` }
+      return `front/${filename}`
     })
-    .filter(({ filename }) => {
-      const isDark = filename.endsWith('-dark')
-      return props.mode === 'dark' ? isDark : !isDark
-    })
-    .map(({ fullPath }) => fullPath)
     .sort()
 })
 
@@ -84,7 +76,7 @@ const filteredIcons = computed(() => {
 })
 
 const getDisplayName = (name: string) => {
-  return name.replace('front/', '').replace('-dark', '')
+  return name.replace('front/', '')
 }
 
 const selectIcon = (iconName: string) => {

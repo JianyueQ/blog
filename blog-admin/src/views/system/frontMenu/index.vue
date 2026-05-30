@@ -131,7 +131,7 @@
                   <svg-icon v-if="menuForm.icon" :name="menuForm.icon" :size="14" />
                 </template>
                 <template #append>
-                  <el-button @click="openIconSelect('light')">选择图标</el-button>
+                  <el-button @click="openIconSelect('icon')">选择图标</el-button>
                 </template>
               </el-input>
             </el-form-item>
@@ -144,7 +144,7 @@
                   <svg-icon v-if="menuForm.iconDark" :name="menuForm.iconDark" :size="14" />
                 </template>
                 <template #append>
-                  <el-button @click="openIconSelect('dark')">选择图标</el-button>
+                  <el-button @click="openIconSelect('iconDark')">选择图标</el-button>
                 </template>
               </el-input>
             </el-form-item>
@@ -195,17 +195,10 @@
         </div>
       </template>
     </el-dialog>
-    <!-- 前台图标选择器（亮色） -->
+    <!-- 前台图标选择器 -->
     <front-icon-select
-      v-model="menuForm.icon"
+      v-model="currentIconField"
       v-model:visible="showIconSelect"
-      mode="light"
-    />
-    <!-- 前台图标选择器（暗色） -->
-    <front-icon-select
-      v-model="menuForm.iconDark"
-      v-model:visible="showDarkIconSelect"
-      mode="dark"
     />
   </div>
 </template>
@@ -227,8 +220,11 @@ const dialogVisible = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const menuFormRef = ref<FormInstance>()
 const showIconSelect = ref(false)
-const showDarkIconSelect = ref(false)
-const iconSelectMode = ref<'light' | 'dark'>('light')
+const currentIconFieldName = ref<'icon' | 'iconDark'>('icon')
+const currentIconField = computed({
+  get: () => menuForm[currentIconFieldName.value] || '',
+  set: (val: string) => { menuForm[currentIconFieldName.value] = val }
+})
 const submitLoading = ref(false)
 
 // 表单校验规则
@@ -342,14 +338,10 @@ const resetForm = () => {
   menuForm.status = 1
 }
 
-// 打开图标选择器
-const openIconSelect = (mode: 'light' | 'dark') => {
-  iconSelectMode.value = mode
-  if (mode === 'dark') {
-    showDarkIconSelect.value = true
-  } else {
-    showIconSelect.value = true
-  }
+// 打开图标选择器（field: 'icon' 或 'iconDark'）
+const openIconSelect = (field: 'icon' | 'iconDark') => {
+  currentIconFieldName.value = field
+  showIconSelect.value = true
 }
 
 // 新增菜单

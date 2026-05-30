@@ -38,7 +38,7 @@
   
   <style lang='scss'>
   .svg-icon {
-    fill: currentColor;
+    /* fill: currentColor;  // 已注释，使用 SVG 文件原始颜色 */
     vertical-align: middle;
   }
   </style>
