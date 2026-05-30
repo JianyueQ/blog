@@ -127,4 +127,19 @@ public class RedisConstants {
      * Redis缓存Key：验证码图片权重 ZSet
      */
     public static final String CODE_IMAGE_SCORES_KEY = "code:image:scores";
+
+    /**
+     * 邮件配置缓存 Key
+     */
+    public static final String EMAIL_CONFIG_KEY = "email:config";
+
+    /**
+     * 邮件发送次数 Key（后缀为邮箱地址）
+     */
+    public static final String EMAIL_SEND_COUNT_KEY = "email:send_count:";
+
+    /**
+     * 每日邮件发送次数上限
+     */
+    public static final int EMAIL_DAILY_LIMIT = 5;
 }

@@ -97,7 +97,7 @@
       </div>
 
       <!-- 账号绑定 -->
-      <div v-if="currentTab === 'binding'" cla1110ss="content-section">
+      <div v-if="currentTab === 'binding'" class="content-section" v-loading="bindingLoading">
         <h2 class="section-title">账号绑定</h2>
         <div class="binding-tips">
           <el-alert title="账号绑定提示" type="info" description="绑定第三方账号后，您可以直接使用第三方账号登录本站，还可以同步您的个人信息。" show-icon
@@ -128,6 +128,7 @@
               </div>
             </div>
           </el-card>
+          <el-empty v-if="!bindingLoading && boundAccounts.length === 0" description="暂无可绑定的第三方平台"></el-empty>
         </div>
 
       </div>
@@ -381,6 +382,10 @@ import {
 } from '@/api/user'
 import { getMyArticleApi, likeArticleApi, delArticleApi } from '@/api/article'
 import { getDictDataApi } from '@/api/dict'
+import {
+  getEnabledThirdPartyConfigApi, getAuthRenderApi,
+  listUserThirdPartyApi, unbindThirdPartyApi
+} from '@/api/auth'
 import AvatarCropper from '@/components/common/AvatarCropper.vue'
 
 import { marked } from "marked";
@@ -427,31 +432,8 @@ export default {
         { key: 'security', label: '修改密码', icon: 'fas fa-lock' },
         { key: 'feedback', label: '反馈', icon: 'fas fa-comment-dots' }
       ],
-      boundAccounts: [
-        {
-          type: 'wechat',
-          name: '微信公众号',
-          icon: 'fab fa-weixin',
-          isBound: true,
-          username: 'wx_user123',
-          color: '#10b981'
-        },
-        {
-          type: 'qq',
-          name: 'QQ',
-          icon: 'fab fa-qq',
-          isBound: false,
-          color: '#60a5fa'
-        },
-        {
-          type: 'gitee',
-          name: '码云',
-          icon: 'fab fa-git-alt',
-          isBound: true,
-          username: 'github_user',
-          color: '#FF0000'
-        }
-      ],
+      boundAccounts: [],
+      bindingLoading: false,
 
       posts: [],
       myComments: [],
@@ -537,6 +519,9 @@ export default {
     },
     currentTab(newVal, oldVal) {
       switch (newVal) {
+        case 'binding':
+          this.loadBoundAccounts()
+          break
         case 'posts':
           this.params.pageNum = 1
           this.getMyArticle()
@@ -675,35 +660,95 @@ export default {
       this.getMyArticle()
     },
     /**
-     * 绑定账号
-     * @param type
+     * 获取第三方账号绑定列表
      */
-    bindAccount(type) {
-      // 模拟绑定过程
-      const account = this.boundAccounts.find(acc => acc.type === type)
-      if (account) {
-        this.$confirm('确定要绑定该账号吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          account.isBound = true
-          this.$message.success('绑定成功')
-        }).catch(() => { })
+    async loadBoundAccounts() {
+      try {
+        this.bindingLoading = true
+        // 获取已启用的第三方配置
+        const configRes = await getEnabledThirdPartyConfigApi()
+        const configs = configRes.data || []
+
+        // 获取当前用户已绑定的列表
+        const boundRes = await listUserThirdPartyApi()
+        const boundList = boundRes.data || []
+
+        // 平台元数据映射
+        const platformMeta = {
+          gitee: { icon: 'fab fa-git-alt', color: '#FF0000' },
+          github: { icon: 'fab fa-github', color: '#333333' },
+          qq: { icon: 'fab fa-qq', color: '#60a5fa' },
+          wechat: { icon: 'fab fa-weixin', color: '#10b981' },
+          weibo: { icon: 'fab fa-weibo', color: '#E6162D' }
+        }
+
+        // 合并配置和绑定状态
+        this.boundAccounts = configs.map(config => {
+          const source = config.configKey
+          const bound = boundList.find(b => b.thirdPartyType === source)
+          const meta = platformMeta[source] || { icon: 'fas fa-link', color: '#909399' }
+          return {
+            type: source,
+            name: config.configName,
+            icon: meta.icon,
+            color: meta.color,
+            isBound: !!bound,
+            username: bound ? (bound.thirdPartyNickname || bound.thirdPartyId) : ''
+          }
+        })
+      } catch (error) {
+        console.error('获取绑定列表失败:', error)
+        this.$message.error('获取绑定列表失败')
+      } finally {
+        this.bindingLoading = false
       }
     },
+    /**
+     * 绑定账号 - 打开OAuth授权窗口
+     */
+    bindAccount(type) {
+      getAuthRenderApi(type, 'bind').then(res => {
+        if (res.data) {
+          const authWindow = window.open(res.data, '_blank', 'width=800,height=600')
+
+          // 监听绑定结果
+          const channel = new BroadcastChannel('third_party_bind')
+          channel.onmessage = (event) => {
+            channel.close()
+            if (event.data.success) {
+              this.$message.success('绑定成功')
+            } else {
+              this.$message.error(event.data.msg || '绑定失败')
+            }
+            this.loadBoundAccounts()
+          }
+
+          // 窗口关闭检测
+          const checkClosed = setInterval(() => {
+            if (authWindow?.closed) {
+              clearInterval(checkClosed)
+              channel.close()
+            }
+          }, 500)
+        }
+      }).catch(() => {
+        this.$message.error('获取授权地址失败')
+      })
+    },
+    /**
+     * 解绑账号
+     */
     unbindAccount(type) {
-      const account = this.boundAccounts.find(acc => acc.type === type)
-      if (account) {
-        this.$confirm('确定要解除绑定吗？', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          account.isBound = false
+      this.$confirm('确定要解除绑定吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        unbindThirdPartyApi(type).then(() => {
           this.$message.success('已解除绑定')
-        }).catch(() => { })
-      }
+          this.loadBoundAccounts()
+        })
+      }).catch(() => {})
     },
     /**
      * 删除评论

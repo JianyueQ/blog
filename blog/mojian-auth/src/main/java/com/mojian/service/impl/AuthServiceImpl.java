@@ -175,7 +175,28 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Boolean sendEmailCode(String email) throws MessagingException {
+        // 1. 检查发送频率
+        String countKey = RedisConstants.EMAIL_SEND_COUNT_KEY + email;
+        Object count = redisUtil.get(countKey);
+        if (count != null && Integer.parseInt(count.toString()) >= RedisConstants.EMAIL_DAILY_LIMIT) {
+            throw new ServiceException("今日发送次数已达上限，请明天再试");
+        }
+
+        // 2. 检查验证码是否仍然有效（防止重复发送）
+        if (redisUtil.hasKey(RedisConstants.CAPTCHA_CODE_KEY + email)) {
+            throw new ServiceException("验证码尚未过期，请稍后再试");
+        }
+
+        // 3. 发送邮件
         emailUtil.sendCode(email);
+
+        // 4. 递增发送计数
+        if (count == null) {
+            redisUtil.set(countKey, 1, RedisConstants.DAY_EXPIRE, TimeUnit.SECONDS);
+        } else {
+            redisUtil.increment(countKey, 1);
+        }
+
         return true;
     }
 
@@ -281,6 +302,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void authLogin(AuthCallback callback,String source, HttpServletResponse httpServletResponse) throws IOException {
+        // 检测是否为绑定流程
+        if (callback.getState() != null && callback.getState().startsWith("bind_")) {
+            handleFrontBind(callback, source, httpServletResponse);
+            return;
+        }
+
         AuthRequest authRequest = getAuthRequest(source);
         AuthResponse<AuthUser> response = authRequest.login(callback);
 
@@ -406,6 +433,47 @@ public class AuthServiceImpl implements AuthService {
 
         StpUtil.login(user.getId());
         httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
+    }
+
+    /**
+     * 处理前台绑定第三方账号流程
+     * state 格式: bind_{userId}_{randomState}
+     */
+    private void handleFrontBind(AuthCallback callback, String source, HttpServletResponse httpServletResponse) throws IOException {
+        AuthRequest authRequest = getAuthRequest(source);
+        AuthResponse<AuthUser> response = authRequest.login(callback);
+
+        if (response.getData() == null) {
+            log.info("用户取消了 {} 绑定", source);
+            httpServletResponse.sendRedirect(Constants.FRONT_BIND_FAIL_URL + "用户取消授权");
+            return;
+        }
+
+        // 从 state 中提取用户ID: bind_{userId}_{randomState}
+        String state = callback.getState();
+        Integer userId;
+        try {
+            String[] parts = state.split("_", 3);
+            userId = Integer.parseInt(parts[1]);
+        } catch (Exception e) {
+            log.warn("绑定失败：无法从 state 解析用户ID, state={}", state);
+            httpServletResponse.sendRedirect(Constants.FRONT_BIND_FAIL_URL + "参数异常");
+            return;
+        }
+
+        JSONObject jsonObject = JSON.parseObject(JSONObject.toJSONString(response.getData()));
+        String uuid = jsonObject.get("uuid").toString();
+        String nickname = jsonObject.containsKey("nickname") ? jsonObject.get("nickname").toString() : source + "用户";
+        String avatar = jsonObject.containsKey("avatar") ? jsonObject.get("avatar").toString() : null;
+
+        try {
+            sysUserThirdPartyService.bind(userId, source, uuid, nickname, avatar);
+            log.info("用户 {} 绑定 {} 成功", userId, source);
+            httpServletResponse.sendRedirect(Constants.FRONT_BIND_SUCCESS_URL);
+        } catch (ServiceException e) {
+            log.warn("绑定失败: {}", e.getMessage());
+            httpServletResponse.sendRedirect(Constants.FRONT_BIND_FAIL_URL + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+        }
     }
 
     /**

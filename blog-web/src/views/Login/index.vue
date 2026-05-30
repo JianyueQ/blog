@@ -267,7 +267,7 @@ export default {
   },
   data() {
     return {
-      currentForm: "login",
+      currentForm: "account",
       loading: false,
       // wechatForm: {
       //   code: "",

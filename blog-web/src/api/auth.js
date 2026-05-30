@@ -105,10 +105,13 @@ export function getEnabledThirdPartyConfigApi() {
 /**
  * 获取第三方授权地址
  */
-export function getAuthRenderApi(source) {
+export function getAuthRenderApi(source, purpose) {
   return request({
     url: `/api/auth/render/${source}`,
     method: 'get',
+    params: {
+      purpose
+    }
   })
 } 
 
@@ -126,5 +129,25 @@ export function getCaptchaSwitchApi() {
   return request({
     url: '/sys/config/getConfigByKey/slider_verify_switch',
     method: 'get'
+  })
+}
+
+/**
+ * 获取当前用户绑定的第三方账号列表
+ */
+export function listUserThirdPartyApi() {
+  return request({
+    url: '/api/userThirdParty/list',
+    method: 'get'
+  })
+}
+
+/**
+ * 解绑第三方账号
+ */
+export function unbindThirdPartyApi(type) {
+  return request({
+    url: '/api/userThirdParty/unbind/' + type,
+    method: 'delete'
   })
 }

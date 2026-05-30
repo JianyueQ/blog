@@ -2,7 +2,10 @@ package com.mojian.service.impl;
 
 import java.util.List;
 
+import com.mojian.common.Constants;
+import com.mojian.common.RedisConstants;
 import com.mojian.exception.ServiceException;
+import com.mojian.utils.RedisUtil;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig> implements SysConfigService {
+
+    private final RedisUtil redisUtil;
 
     /**
      * 查询参数配置表分页列表
@@ -62,7 +67,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
      * 修改参数配置表
      */
     @Override
-    @CachePut(cacheNames = "sys_config", key = "#sysConfig.configKey")
+    @CachePut(cacheNames = Constants.CACHE_SYS_CONFIG, key = "#sysConfig.configKey")
     public SysConfig update(SysConfig sysConfig) {
         SysConfig obj = baseMapper.selectOne(new LambdaQueryWrapper<SysConfig>()
                 .eq(SysConfig::getConfigKey, sysConfig.getConfigKey()));
@@ -70,6 +75,10 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             throw new ServiceException("参数键名已存在");
         }
         updateById(sysConfig);
+        // 如果是邮件相关配置，清除邮件缓存
+        if (sysConfig.getConfigKey().startsWith("mail_")) {
+            redisUtil.delete(RedisConstants.EMAIL_CONFIG_KEY);
+        }
         return sysConfig;
     }
 
@@ -83,7 +92,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
     }
 
     @Override
-    @Cacheable(cacheNames = "sys_config", key = "#key")
+    @Cacheable(cacheNames = Constants.CACHE_SYS_CONFIG, key = "#key")
     public SysConfig selectConfigByKey(String key) {
         return baseMapper.selectOne(new LambdaQueryWrapper<SysConfig>()
                 .eq(SysConfig::getConfigKey, key));

@@ -7,8 +7,10 @@ import com.mojian.dto.Captcha;
 import com.mojian.dto.EmailRegisterDto;
 import com.mojian.dto.LoginDTO;
 import com.mojian.entity.SysThirdPartyConfig;
+import com.mojian.entity.SysUserThirdParty;
 import com.mojian.service.AuthService;
 import com.mojian.service.SysThirdPartyConfigService;
+import com.mojian.service.SysUserThirdPartyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,8 @@ public class AuthController {
     private final AuthService authService;
 
     private final SysThirdPartyConfigService sysThirdPartyConfigService;
+
+    private final SysUserThirdPartyService sysUserThirdPartyService;
 
     @RequestMapping({"/api/auth/render/{source}", "/auth/render/{source}"})
     @Operation(summary = "获取第三方授权地址")
@@ -127,6 +131,20 @@ public class AuthController {
     @GetMapping({"/api/thirdPartyConfig/admin/enabledList", "/thirdPartyConfig/admin/enabledList"})
     public Result<List<SysThirdPartyConfig>> getAdminEnabledThirdPartyConfig() {
         return Result.success(sysThirdPartyConfigService.getAdminEnabledList());
+    }
+
+    @Operation(summary = "获取当前用户绑定的第三方账号列表")
+    @GetMapping("/api/userThirdParty/list")
+    public Result<List<SysUserThirdParty>> listUserThirdParty() {
+        Integer userId = StpUtil.getLoginIdAsInt();
+        return Result.success(sysUserThirdPartyService.listByUserId(userId));
+    }
+
+    @Operation(summary = "解绑第三方账号")
+    @DeleteMapping("/api/userThirdParty/unbind/{type}")
+    public Result<Boolean> unbindThirdParty(@PathVariable String type) {
+        Integer userId = StpUtil.getLoginIdAsInt();
+        return Result.success(sysUserThirdPartyService.unbind(userId, type));
     }
 
 }

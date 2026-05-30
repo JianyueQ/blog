@@ -184,12 +184,23 @@ const routes = [
                   icon: 'fas fa-comments',
                   hidden: true
                 }
-              }, {
+              },
+              {
                 path: '/login',
                 name: 'Login',
                 component: () => import('@/views/login/index.vue'),
                 meta: {
                   title: '登录',
+                  hidden: true,
+                  fullscreen: true
+                }
+              },
+              {
+                path: '/bindCallback',
+                name: 'BindCallback',
+                component: () => import('@/views/bindCallback/index.vue'),
+                meta: {
+                  title: '绑定回调',
                   hidden: true,
                   fullscreen: true
                 }

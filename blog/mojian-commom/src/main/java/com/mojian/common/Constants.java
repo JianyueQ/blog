@@ -41,6 +41,11 @@ public class Constants {
     /** 后台绑定失败重定向地址 */
     public static final String ADMIN_BIND_FAIL_URL = "https://gp.jianyue.cloud/admin/bindCallback?result=fail&msg=";
 
+    /** 前台绑定成功重定向地址 */
+    public static final String FRONT_BIND_SUCCESS_URL = "https://gp.jianyue.cloud/bindCallback?result=success";
+    /** 前台绑定失败重定向地址 */
+    public static final String FRONT_BIND_FAIL_URL = "https://gp.jianyue.cloud/bindCallback?result=fail&msg=";
+
     /** 第三方登录配置缓存名 */
     public static final String CACHE_THIRD_PARTY_CONFIG = "third_party_config";
     /** 第三方登录配置缓存键 - 前台已启用列表 */
@@ -52,4 +57,7 @@ public class Constants {
     public static final String CACHE_FRONT_MENU = "front_menu";
     /** 前台菜单导航列表缓存键 */
     public static final String CACHE_FRONT_MENU_NAV = "nav_list";
+
+    /** 系统参数配置缓存名 */
+    public static final String CACHE_SYS_CONFIG = "sys_config";
 }

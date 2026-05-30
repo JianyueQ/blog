@@ -1,15 +1,22 @@
 package com.mojian.utils;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mojian.common.RedisConstants;
+import com.mojian.entity.SysConfig;
+import com.mojian.entity.SysWebConfig;
+import com.mojian.mapper.SysConfigMapper;
+import com.mojian.mapper.SysWebConfigMapper;
+import com.mojian.vo.email.EmailConfigVO;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import jakarta.mail.*;
-import jakarta.mail.internet.MimeMessage;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,126 +32,139 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class EmailUtil {
 
-
-    @Value("${mail.smtp.email}")
-    private String fromEmail;
-
-    @Value("${mail.smtp.password}")
-    private String password;
-
-    @Value("${mail.smtp.port}")
-    private int port;
-
-    @Value("${mail.smtp.host}")
-    private String host;
-
     private final RedisUtil redisUtil;
+    private final SysConfigMapper sysConfigMapper;
+    private final SysWebConfigMapper sysWebConfigMapper;
 
-    private final JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
+    private JavaMailSenderImpl javaMailSender;
+    private EmailConfigVO cachedConfig;
 
+    /**
+     * 邮件HTML模板（支持 {siteName} {siteLogo} {siteUrl} {code} 占位符）
+     */
+    private static final String MAIL_TEMPLATE = "<html><body><div style=\"position:relative;font-size:14px;padding:15px;line-height:1.7;\">"
+            + "<div style=\"max-width:800px;padding-bottom:10px;margin:20px auto 0 auto;\">"
+            + "<table cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#fff;border-collapse:collapse;border:1px solid #e5e5e5;box-shadow:0 10px 15px rgba(0,0,0,0.05);text-align:left;width:100%;font-size:14px;\">"
+            + "<tbody>"
+            + "<tr style=\"background-color:#f8f8f8;\"><td>"
+            + "<img style=\"padding:15px 0 15px 30px;width:50px\" src=\"{siteLogo}\" />"
+            + "<span>{siteName}</span></td></tr>"
+            + "<tr><td style=\"padding:30px;\">"
+            + "<h1 style=\"font-size:26px;font-weight:bold;color:#00785a;\">验证您的邮箱地址</h1>"
+            + "<p style=\"line-height:1.75em;\">感谢您使用 {siteName}.</p>"
+            + "<p style=\"line-height:1.75em;\">以下是您的邮箱验证码，请将它输入到 <span style=\"color:#409eff;\">{siteName}</span> 的邮箱验证码输入框中:</p>"
+            + "</td></tr>"
+            + "<tr><td style=\"padding:0 30px;\">"
+            + "<p style=\"color:#253858;text-align:center;line-height:1.75em;background-color:#f2f2f2;min-width:200px;margin:0 auto;font-size:28px;border-radius:5px;border:1px solid #d9d9d9;font-weight:bold;\">{code}</p>"
+            + "</td></tr>"
+            + "<tr><td style=\"padding:30px;\">"
+            + "<p style=\"line-height:1.75em;\">这一封邮件包括一些您的私密信息，请不要回复或转发它，以免带来不必要的信息泄露风险。</p>"
+            + "</td></tr>"
+            + "<tr><td style=\"padding:30px;\">"
+            + "<hr><p style=\"text-align:center;line-height:1.75em;\">"
+            + "<a href=\"{siteUrl}\" style=\"text-decoration:none;color:#409eff\">{siteName}</a>"
+            + "</p></td></tr>"
+            + "</tbody></table></div></div></body></html>";
 
+    /**
+     * 获取邮件配置（优先缓存）
+     */
+    private EmailConfigVO getEmailConfig() {
+        Object value = redisUtil.get(RedisConstants.EMAIL_CONFIG_KEY);
+        if (value != null) {
+            return JSONObject.parseObject(value.toString(), EmailConfigVO.class);
+        }
+        // 从数据库批量查询
+        List<SysConfig> configs = sysConfigMapper.selectList(
+            new LambdaQueryWrapper<SysConfig>().likeRight(SysConfig::getConfigKey, "mail_")
+        );
+        EmailConfigVO config = buildConfigVO(configs);
+        redisUtil.set(RedisConstants.EMAIL_CONFIG_KEY,
+            JSONObject.toJSONString(config),
+            RedisConstants.DAY_EXPIRE, TimeUnit.SECONDS);
+        return config;
+    }
 
-    public void getJavaMailSenderImpl(){
-        javaMailSender.setHost(host);
-        javaMailSender.setUsername(fromEmail);
-        javaMailSender.setPassword(password);
-        javaMailSender.setPort(port);
+    /**
+     * 从数据库配置列表构建 EmailConfigVO
+     */
+    private EmailConfigVO buildConfigVO(List<SysConfig> configs) {
+        EmailConfigVO.EmailConfigVOBuilder builder = EmailConfigVO.builder();
+        for (SysConfig config : configs) {
+            switch (config.getConfigKey()) {
+                case "mail_smtp_host" -> builder.smtpHost(config.getConfigValue());
+                case "mail_smtp_port" -> builder.smtpPort(Integer.parseInt(config.getConfigValue()));
+                case "mail_smtp_email" -> builder.smtpEmail(config.getConfigValue());
+                case "mail_smtp_password" -> builder.smtpPassword(config.getConfigValue());
+                case "mail_subject" -> builder.mailSubject(config.getConfigValue());
+            }
+        }
+        return builder.build();
+    }
+
+    /**
+     * 构建或复用 JavaMailSender
+     */
+    private JavaMailSenderImpl getMailSender(EmailConfigVO config) {
+        if (javaMailSender != null && config.equals(cachedConfig)) {
+            return javaMailSender;
+        }
+        javaMailSender = new JavaMailSenderImpl();
+        javaMailSender.setHost(config.getSmtpHost());
+        javaMailSender.setPort(config.getSmtpPort());
+        javaMailSender.setUsername(config.getSmtpEmail());
+        javaMailSender.setPassword(config.getSmtpPassword());
         javaMailSender.setDefaultEncoding("UTF-8");
         Properties p = new Properties();
         p.setProperty("mail.smtp.auth", "true");
+        p.setProperty("mail.smtp.ssl.enable", "true");
         p.setProperty("mail.debug", "true");
         javaMailSender.setJavaMailProperties(p);
+        cachedConfig = config;
+        return javaMailSender;
     }
 
     /**
      * 发送验证码
-     * @param email
-     * @throws MessagingException
      */
     public void sendCode(String email) throws MessagingException {
-
-        this.getJavaMailSenderImpl();
+        EmailConfigVO config = getEmailConfig();
+        JavaMailSenderImpl sender = getMailSender(config);
 
         int code = (int) ((ThreadLocalRandom.current().nextDouble() * 9 + 1) * 100000);
-        String content = "<html>\n" +
-                "\t<body><div id=\"contentDiv\" onmouseover=\"getTop().stopPropagation(event);\" onclick=\"getTop().preSwapLink(event, 'html', 'ZC0004_vDfNJayMtMUuKGIAzzsWvc8');\" style=\"position:relative;font-size:14px;height:auto;padding:15px 15px 10px 15px;z-index:1;zoom:1;line-height:1.7;\" class=\"body\">\n" +
-                "  <div id=\"qm_con_body\">\n" +
-                "    <div id=\"mailContentContainer\" class=\"qmbox qm_con_body_content qqmail_webmail_only\" style=\"opacity: 1;\">\n" +
-                "      <style type=\"text/css\">\n" +
-                "        .qmbox h1,.qmbox \t\t\th2,.qmbox \t\t\th3 {\t\t\t\tcolor: #00785a;\t\t\t}\t\t\t.qmbox p {\t\t\t\tpadding: 0;\t\t\t\tmargin: 0;\t\t\t\tcolor: #333;\t\t\t\tfont-size: 16px;\t\t\t}\t\t\t.qmbox hr {\t\t\t\tbackground-color: #d9d9d9;\t\t\t\tborder: none;\t\t\t\theight: 1px;\t\t\t}\t\t\t.qmbox .eo-link {\t\t\t\tcolor: #0576b9;\t\t\t\ttext-decoration: none;\t\t\t\tcursor: pointer;\t\t\t}\t\t\t.qmbox .eo-link:hover {\t\t\t\tcolor: #3498db;\t\t\t}\t\t\t.qmbox .eo-link:hover {\t\t\t\ttext-decoration: underline;\t\t\t}\t\t\t.qmbox .eo-p-link {\t\t\t\tdisplay: block;\t\t\t\tmargin-top: 20px;\t\t\t\tcolor: #009cff;\t\t\t\ttext-decoration: underline;\t\t\t}\t\t\t.qmbox .p-intro {\t\t\t\tpadding: 30px;\t\t\t}\t\t\t.qmbox .p-code {\t\t\t\tpadding: 0 30px 0 30px;\t\t\t}\t\t\t.qmbox .p-news {\t\t\t\tpadding: 0px 30px 30px 30px;\t\t\t}\n" +
-                "      </style>\n" +
-                "      <div style=\"max-width:800px;padding-bottom:10px;margin:20px auto 0 auto;\">\n" +
-                "        <table cellpadding=\"0\" cellspacing=\"0\" style=\"background-color: #fff;border-collapse: collapse; border:1px solid #e5e5e5;box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);text-align: left;width: 100%;font-size: 14px;border-spacing: 0;\">\n" +
-                "          <tbody>\n" +
-                "            <tr style=\"background-color: #f8f8f8;\">\n" +
-                "              <td>\n" +
-                "                <img style=\"padding: 15px 0 15px 30px;width:50px\" src=\"https://foruda.gitee.com/avatar/1739413372327645883/13781_d029020a68_1739413372.png\" />" +
-                "                <span>拾壹博客 </span>\n" +
-                "              </td>\n" +
-                "            </tr>\n" +
-                "            <tr>\n" +
-                "              <td class=\"p-intro\">\n" +
-                "                <h1 style=\"font-size: 26px; font-weight: bold;\">验证您的邮箱地址</h1>\n" +
-                "                <p style=\"line-height:1.75em;\">感谢您使用 拾壹博客. </p>\n" +
-                "                <p style=\"line-height:1.75em;\">以下是您的邮箱验证码，请将它输入到  <span style=\"color:#409eff;\">拾壹博客</span> 的邮箱验证码输入框中:</p>\n" +
-                "              </td>\n" +
-                "            </tr>\n" +
-                "            <tr>\n" +
-                "              <td class=\"p-code\">\n" +
-                "                <p style=\"color: #253858;text-align:center;line-height:1.75em;background-color: #f2f2f2;min-width: 200px;margin: 0 auto;font-size: 28px;border-radius: 5px;border: 1px solid #d9d9d9;font-weight: bold;\">"+code+"</p>\n" +
-                "              </td>\n" +
-                "            </tr>\n" +
-                "            <tr>\n" +
-                "              <td class=\"p-intro\">\n" +
-                "                <p style=\"line-height:1.75em;\">这一封邮件包括一些您的私密信息，请不要回复或转发它，以免带来不必要的信息泄露风险。 </p>\n" +
-                "              </td>\n" +
-                "            </tr>\n" +
-                "            <tr>\n" +
-                "              <td class=\"p-intro\">\n" +
-                "                <hr>\n" +
-                "                <p style=\"text-align: center;line-height:1.75em;\">shiyi - <a href='https://www.shiyit.com' style='text-decoration: none;color:#409eff'>拾壹博客</a></p>\n" +
-                "              </td>\n" +
-                "            </tr>\n" +
-                "          </tbody>\n" +
-                "        </table>\n" +
-                "      </div>\n" +
-                "      <style type=\"text/css\">\n" +
-                "        .qmbox style, .qmbox script, .qmbox head, .qmbox link, .qmbox meta {display: none !important;}\n" +
-                "      </style>\n" +
-                "    </div>\n" +
-                "  </div><!-- -->\n" +
-                "  <style>\n" +
-                "    #mailContentContainer .txt {height:auto;}\n" +
-                "  </style>\n" +
-                "</div></body>\n" +
-                "</html>\n";
 
-        // 创建邮件消息
-        this.send(email, content);
-        log.info("邮箱验证码发送成功,邮箱:{},验证码:{}",email,code);
+        // 从 sys_web_config 获取站点信息
+        SysWebConfig webConfig = sysWebConfigMapper.selectOne(
+            new LambdaQueryWrapper<SysWebConfig>().last("limit 1")
+        );
 
-        redisUtil.set(RedisConstants.CAPTCHA_CODE_KEY + email, code +"");
-        redisUtil.expire(RedisConstants.CAPTCHA_CODE_KEY + email, RedisConstants.MINUTE_EXPIRE, TimeUnit.SECONDS);
+        // 替换模板占位符
+        String content = MAIL_TEMPLATE
+            .replace("{code}", String.valueOf(code))
+            .replace("{siteName}", webConfig.getName())
+            .replace("{siteLogo}", webConfig.getLogo())
+            .replace("{siteUrl}", webConfig.getWebUrl());
+
+        // 替换主题占位符
+        String subject = config.getMailSubject()
+            .replace("{siteName}", webConfig.getName());
+
+        this.send(sender, email, content, subject);
+        log.info("邮箱验证码发送成功,邮箱:{},验证码:{}", email, code);
+
+        redisUtil.set(RedisConstants.CAPTCHA_CODE_KEY + email, code + "");
+        redisUtil.expire(RedisConstants.CAPTCHA_CODE_KEY + email,
+            RedisConstants.MINUTE_EXPIRE, TimeUnit.SECONDS);
     }
 
-    private void send(String email, String template) throws MessagingException {
-
-        //创建一个MINE消息
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+    private void send(JavaMailSenderImpl sender, String email, String template, String subject) throws MessagingException {
+        MimeMessage mimeMessage = sender.createMimeMessage();
         MimeMessageHelper mineHelper = new MimeMessageHelper(mimeMessage, true);
-        // 设置邮件主题
-        mineHelper.setSubject("您有一封来自 拾壹博客 的回执！");
-        // 设置邮件发送者
-        mineHelper.setFrom(Objects.requireNonNull(javaMailSender.getUsername()));
-        // 设置邮件接收者，可以有多个接收者，中间用逗号隔开
+        mineHelper.setSubject(subject);
+        mineHelper.setFrom(Objects.requireNonNull(sender.getUsername()));
         mineHelper.setTo(email);
-        // 设置邮件发送日期
         mineHelper.setSentDate(DateUtil.getNowDate());
-        // 设置邮件的正文
-        mineHelper.setText(template,true);
-        // 发送邮件
-        javaMailSender.send(mimeMessage);
+        mineHelper.setText(template, true);
+        sender.send(mimeMessage);
     }
-
-
 }
