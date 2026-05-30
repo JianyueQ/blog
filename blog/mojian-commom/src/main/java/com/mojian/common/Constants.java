@@ -41,4 +41,9 @@ public class Constants {
     public static final String CACHE_THIRD_PARTY_FRONT_ENABLED = "front_enabled_list";
     /** 第三方登录配置缓存键 - 后台已启用列表 */
     public static final String CACHE_THIRD_PARTY_ADMIN_ENABLED = "admin_enabled_list";
+
+    /** 前台菜单缓存名 */
+    public static final String CACHE_FRONT_MENU = "front_menu";
+    /** 前台菜单导航列表缓存键 */
+    public static final String CACHE_FRONT_MENU_NAV = "nav_list";
 }
