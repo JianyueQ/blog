@@ -96,6 +96,12 @@ const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
 
 // 处理图片删除
 const handleRemove: UploadProps['onRemove'] = async (uploadFile: any) => {
+  // 检查是否是上传失败的文件（没有有效的 url）
+  if (!uploadFile.url || uploadFile.url.startsWith('blob:')) {
+    // 上传失败或校验失败的文件，不需要调用后端删除接口
+    return
+  }
+  
   if (props.multiple) {
     await deleteFileApi(uploadFile.url)
     const urls = (props.modelValue as string[]).filter(url => url !== uploadFile.url)

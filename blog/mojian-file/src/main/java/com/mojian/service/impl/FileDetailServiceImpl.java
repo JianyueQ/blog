@@ -3,6 +3,7 @@ package com.mojian.service.impl;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Dict;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -198,16 +199,18 @@ public class FileDetailServiceImpl extends ServiceImpl<FileDetailMapper, FileDet
     public FileInfo toFileInfo(FileDetail detail) throws JsonProcessingException {
         FileInfo info = BeanUtil.copyProperties(
                 detail, FileInfo.class, "metadata", "userMetadata", "thMetadata", "thUserMetadata", "attr", "hashInfo");
-
-        // 这里手动获取数据库中的 json 字符串 并转成 元数据，方便使用
-        info.setMetadata(jsonToMetadata(detail.getMetadata()));
-        info.setUserMetadata(jsonToMetadata(detail.getUserMetadata()));
-        info.setThMetadata(jsonToMetadata(detail.getThMetadata()));
-        info.setThUserMetadata(jsonToMetadata(detail.getThUserMetadata()));
-        // 这里手动获取数据库中的 json 字符串 并转成 附加属性字典，方便使用
-        info.setAttr(jsonToDict(detail.getAttr()));
-        // 这里手动获取数据库中的 json 字符串 并转成 哈希信息，方便使用
-        info.setHashInfo(jsonToHashInfo(detail.getHashInfo()));
+        if (ObjectUtil.isNotNull(detail)){
+            // 这里手动获取数据库中的 json 字符串 并转成 元数据，方便使用
+            info.setMetadata(jsonToMetadata(detail.getMetadata()));
+            info.setUserMetadata(jsonToMetadata(detail.getUserMetadata()));
+            info.setThMetadata(jsonToMetadata(detail.getThMetadata()));
+            info.setThUserMetadata(jsonToMetadata(detail.getThUserMetadata()));
+            // 这里手动获取数据库中的 json 字符串 并转成 附加属性字典，方便使用
+            info.setAttr(jsonToDict(detail.getAttr()));
+            // 这里手动获取数据库中的 json 字符串 并转成 哈希信息，方便使用
+            info.setHashInfo(jsonToHashInfo(detail.getHashInfo()));
+            return info;
+        }
         return info;
     }
 

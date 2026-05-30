@@ -24,7 +24,7 @@
             </span>
           </div>
           <div class="moment-content-wrapper">
-            <div class="moment-content" v-html="moment.content"></div>
+            <div class="moment-content markdown-body" v-html="moment.renderedContent || moment.content"></div>
             <div class="moment-images" v-if="moment.images?.length">
               <img v-for="(img, index) in moment.images" :key="img" v-lazy="img"
                 @click="previewImage(moment.images, index)" />
@@ -47,6 +47,8 @@
 <script>
 import { formatTime } from '@/utils/time'
 import { getMoments } from '@/api/moments'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'Moments',
@@ -79,6 +81,11 @@ export default {
         this.total = res.data.total
         this.moments.forEach(moment => {
           moment.images = this.parseImages(moment.images)
+          // 渲染 Markdown 内容
+          if (moment.content) {
+            const html = marked.parse(moment.content)
+            moment.renderedContent = DOMPurify.sanitize(html)
+          }
         })
       } catch (error) {
         console.error('获取说说列表失败:', error)
@@ -199,10 +206,103 @@ export default {
     color: var(--text-primary);
     line-height: 1.8;
     font-size: 15px;
-    white-space: pre-wrap;
     word-break: break-word;
+    
+    // Markdown 样式
+    :deep(p) {
+      margin: 0 0 12px 0;
+      line-height: 1.8;
+    }
+    
+    :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+      margin: 16px 0 8px 0;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text-primary);
+    }
+    
+    :deep(h1) { font-size: 1.8em; }
+    :deep(h2) { font-size: 1.5em; }
+    :deep(h3) { font-size: 1.3em; }
+    :deep(h4) { font-size: 1.1em; }
+    
+    :deep(ul), :deep(ol) {
+      margin: 8px 0;
+      padding-left: 24px;
+    }
+    
     :deep(li) {
-      margin-left: 30px;
+      margin-left: 0;
+      margin-bottom: 4px;
+    }
+    
+    :deep(blockquote) {
+      margin: 12px 0;
+      padding: 8px 16px;
+      border-left: 4px solid $primary;
+      background: var(--hover-bg);
+      color: var(--text-secondary);
+    }
+    
+    :deep(code) {
+      padding: 2px 6px;
+      background: var(--hover-bg);
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: var(--text-primary);
+    }
+    
+    :deep(pre) {
+      margin: 12px 0;
+      padding: 12px;
+      background: var(--hover-bg);
+      border-radius: 8px;
+      overflow-x: auto;
+      
+      code {
+        padding: 0;
+        background: none;
+      }
+    }
+    
+    :deep(img) {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 12px 0;
+    }
+    
+    :deep(a) {
+      color: $primary;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    :deep(table) {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      
+      th, td {
+        border: 1px solid var(--border-color);
+        padding: 8px 12px;
+        text-align: left;
+      }
+      
+      th {
+        background: var(--hover-bg);
+        font-weight: 600;
+      }
+    }
+    
+    :deep(hr) {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 16px 0;
     }
   }
 

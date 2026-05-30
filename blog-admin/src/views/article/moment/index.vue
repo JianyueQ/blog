@@ -17,9 +17,21 @@
       <el-table v-loading="loading" :data="momentList" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="内容" align="center" prop="content" show-overflow-tooltip />
-        <el-table-column label="图片" align="center" prop="content">
+        <el-table-column label="图片" align="center" prop="images" width="200">
           <template #default="scope">
-            <el-image v-for="item in parseImage(scope.row.images)" :src="item" style="width: 50px; height: 50px" />
+            <div v-if="parseImage(scope.row.images).length > 0" style="display: flex; gap: 4px; flex-wrap: wrap;">
+              <el-image 
+                v-for="(item, index) in parseImage(scope.row.images).slice(0, 3)" 
+                :key="index"
+                :src="item" 
+                style="width: 50px; height: 50px; border-radius: 4px;" 
+                fit="cover"
+                :preview-src-list="parseImage(scope.row.images)"
+                :initial-index="index"
+              />
+              <span v-if="parseImage(scope.row.images).length > 3" style="font-size: 12px; color: #909399;">+{{ parseImage(scope.row.images).length - 3 }}</span>
+            </div>
+            <span v-else style="color: #909399;">无</span>
           </template>
         </el-table-column>
         <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
@@ -43,15 +55,19 @@
     </el-card>
 
     <!-- 添加或修改对话框 -->
-    <el-dialog :title="dialog.title" v-model="dialog.visible" width="600px" append-to-body destroy-on-close
+    <el-dialog :title="dialog.title" v-model="dialog.visible" width="1200px" append-to-body destroy-on-close
       class="custom-dialog">
       <el-form ref="momentFormRef" :model="momentForm" :rules="rules" label-width="80px" class="custom-form">
         <el-form-item label="内容" prop="content">
-            <div style="border: 1px solid #ccc;">
-                <Toolbar style="border-bottom: 1px solid #ccc;" :editor="editorRef" :defaultConfig="toolbarConfig" :mode="mode" />
-                <Editor style=" overflow-y: hidden;min-height: 300px;" v-model="momentForm.content" :defaultConfig="editorConfig" :mode="mode"
-                @onCreated="handleCreated"/>
-            </div>
+            <mavon-editor
+                placeholder="请输入说说内容..."
+                style="height: 400px; width: 100%"
+                ref="mdRef"
+                v-model="momentForm.content"
+                @imgDel="imgDel"
+                @imgAdd="imgAdd"
+                :toolbars="toolbars"
+            />
         </el-form-item>
         <el-form-item label="图片" prop="images">
           <UploadImage v-model="momentForm.images" :source="'moment'" :limit="9" :multiple="true" />
@@ -78,26 +94,39 @@ import {
   deleteSysMomentApi
 } from '@/api/article/moment'
 import UploadImage from '@/components/Upload/Image.vue'
+import { uploadApi, deleteFileApi } from '@/api/file'
 
-
-import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
-import '@wangeditor/editor/dist/css/style.css'
-const editorRef = shallowRef()
-const mode = 'default'
-const toolbarConfig = {}
-const editorConfig = {
-  placeholder: "请输入内容...",
-  MENU_CONF: {
-    codeSelectLang: {
-      // 代码语言
-      codeLangs: [
-        { text: "CSS", value: "css" },
-        { text: "HTML", value: "html" },
-        { text: "XML", value: "xml" },
-        { text: "Java", value: "java" },
-      ],
-    },
-  },
+// mavon-editor 工具栏配置
+const toolbars = {
+  bold: true, // 粗体
+  italic: true, // 斜体
+  header: true, // 标题
+  underline: true, // 下划线
+  strikethrough: true, // 中划线
+  mark: true, // 标记
+  superscript: true, // 上角标
+  subscript: true, // 下角标
+  quote: true, // 引用
+  ol: true, // 有序列表
+  ul: true, // 无序列表
+  link: true, // 链接
+  imagelink: true, // 图片链接
+  code: true, // code
+  table: true, // 表格
+  fullscreen: true, // 全屏编辑
+  readmodel: true, // 沉浸式阅读
+  htmlcode: true, // 展示html
+  help: true, // 帮助
+  undo: true, // 上一步
+  redo: true, // 下一步
+  trash: true, // 清空
+  save: true, // 保存（触发events中的save事件）
+  navigation: true, // 导航目录
+  alignleft: true, // 左对齐
+  aligncenter: true, // 居中
+  alignright: true, // 右对齐
+  subfield: true, // 单双栏模式
+  preview: true // 预览
 }
 
 // 查询参数
@@ -212,9 +241,24 @@ const handleUpdate = (row: any) => {
   momentForm.images = momentForm.images.split(',')
 }
 
-// 富文本编辑器创建完成
-const handleCreated = (editor:any) => {
-  editorRef.value = editor // 记录 editor 实例，重要！
+// 富文本编辑器引用
+const mdRef = ref()
+
+// 删除图片
+const imgDel = (pos: any, $file: any) => {
+  console.log('删除图片:', pos)
+  deleteFileApi(pos[0]).then(res => {
+    mdRef.value?.$img2Url(pos, '')
+  })
+}
+
+// 添加图片
+const imgAdd = (pos: any, $file: any) => {
+  const formdata = new FormData()
+  formdata.append('file', $file)
+  uploadApi(formdata, 'moment-content').then(res => {
+    mdRef.value?.$img2Url(pos, res.data)
+  })
 }
 
 // 提交表单
