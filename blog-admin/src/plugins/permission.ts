@@ -6,7 +6,7 @@ import 'nprogress/nprogress.css'
 import { getToken } from '@/utils/auth'
 NProgress.configure({ showSpinner: false })
 
-const whiteList = ['/login'] // 路由白名单
+const whiteList = ['/login', '/bindCallback'] // 路由白名单
 
 export function setupPermission() {
   router.beforeEach(async (to, from, next) => {
