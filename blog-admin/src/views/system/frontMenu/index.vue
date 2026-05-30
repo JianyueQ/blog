@@ -23,9 +23,15 @@
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <el-table-column label="菜单名称" prop="title" show-overflow-tooltip min-width="150" />
-        <el-table-column label="图标" align="center" width="80">
+        <el-table-column label="亮色图标" align="center" width="100">
           <template #default="{ row }">
             <svg-icon v-if="row.icon" :name="row.icon" :size="16" />
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="暗色图标" align="center" width="100">
+          <template #default="{ row }">
+            <svg-icon v-if="row.iconDark" :name="row.iconDark" :size="16" />
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -119,13 +125,26 @@
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="图标" prop="icon">
-              <el-input v-model="menuForm.icon" placeholder="点击选择图标" readonly>
+            <el-form-item label="亮色图标" prop="icon">
+              <el-input v-model="menuForm.icon" placeholder="点击选择亮色图标" readonly>
                 <template #prefix>
                   <svg-icon v-if="menuForm.icon" :name="menuForm.icon" :size="14" />
                 </template>
                 <template #append>
-                  <el-button @click="showIconSelect = true">选择图标</el-button>
+                  <el-button @click="openIconSelect('light')">选择图标</el-button>
+                </template>
+              </el-input>
+            </el-form-item>
+          </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="暗色图标" prop="iconDark">
+              <el-input v-model="menuForm.iconDark" placeholder="点击选择暗色图标" readonly>
+                <template #prefix>
+                  <svg-icon v-if="menuForm.iconDark" :name="menuForm.iconDark" :size="14" />
+                </template>
+                <template #append>
+                  <el-button @click="openIconSelect('dark')">选择图标</el-button>
                 </template>
               </el-input>
             </el-form-item>
@@ -176,10 +195,17 @@
         </div>
       </template>
     </el-dialog>
-    <!-- 前台图标选择器 -->
+    <!-- 前台图标选择器（亮色） -->
     <front-icon-select
       v-model="menuForm.icon"
       v-model:visible="showIconSelect"
+      mode="light"
+    />
+    <!-- 前台图标选择器（暗色） -->
+    <front-icon-select
+      v-model="menuForm.iconDark"
+      v-model:visible="showDarkIconSelect"
+      mode="dark"
     />
   </div>
 </template>
@@ -190,6 +216,7 @@ import type { FormInstance } from 'element-plus'
 import FrontIconSelect from '@/components/FrontIconSelect/index.vue'
 import {
   getFrontMenuTreeApi,
+  getFrontMenuByIdApi,
   createFrontMenuApi,
   updateFrontMenuApi,
   deleteFrontMenuApi,
@@ -200,6 +227,8 @@ const dialogVisible = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const menuFormRef = ref<FormInstance>()
 const showIconSelect = ref(false)
+const showDarkIconSelect = ref(false)
+const iconSelectMode = ref<'light' | 'dark'>('light')
 const submitLoading = ref(false)
 
 // 表单校验规则
@@ -222,6 +251,7 @@ const menuForm = reactive({
   title: '',
   path: '',
   icon: '',
+  iconDark: '',  // 暗色模式图标
   sort: 0,
   hidden: 0,
   isExternal: 0,
@@ -304,11 +334,22 @@ const resetForm = () => {
   menuForm.title = ''
   menuForm.path = ''
   menuForm.icon = ''
+  menuForm.iconDark = ''
   menuForm.sort = 0
   menuForm.hidden = 0
   menuForm.isExternal = 0
   menuForm.colorClass = ''
   menuForm.status = 1
+}
+
+// 打开图标选择器
+const openIconSelect = (mode: 'light' | 'dark') => {
+  iconSelectMode.value = mode
+  if (mode === 'dark') {
+    showDarkIconSelect.value = true
+  } else {
+    showIconSelect.value = true
+  }
 }
 
 // 新增菜单
@@ -334,6 +375,7 @@ const handleEdit = (row: any) => {
     title: row.title,
     path: row.path,
     icon: row.icon || '',
+    iconDark: row.iconDark || '',
     sort: row.sort,
     hidden: row.hidden,
     isExternal: row.isExternal,

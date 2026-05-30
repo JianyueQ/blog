@@ -26,6 +26,12 @@ public class SysFrontMenuController {
         return Result.success(sysFrontMenuService.getMenuTree());
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "根据ID获取单个前台菜单")
+    public Result<SysFrontMenu> getMenuById(@PathVariable Integer id) {
+        return Result.success(sysFrontMenuService.getMenuById(id));
+    }
+
     @PostMapping
     @Operation(summary = "添加前台菜单")
     @OperationLogger(value = "添加前台菜单")

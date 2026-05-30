@@ -230,11 +230,11 @@ export default {
       return this.menuItems.map(item => {
         const processItem = (obj) => {
           const processed = { ...obj }
-          // 根据主题切换图标路径
-          if (processed.icon && processed.icon.startsWith('front/')) {
-            processed.icon = isDark 
-              ? processed.icon.replace('front/', 'front-dark/').replace(/(\/|^)([^\/]+)$/, '$1$2-dark')
-              : processed.icon.replace('front-dark/', 'front/').replace(/-dark(\.svg)?$/, '')
+          // 根据主题使用对应的图标字段
+          if (isDark && processed.iconDark) {
+            processed.icon = processed.iconDark
+          } else if (!isDark && processed.icon) {
+            processed.icon = processed.icon
           }
           if (obj.children) {
             processed.children = obj.children.map(processItem)

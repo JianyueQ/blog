@@ -11,6 +11,16 @@ export function getFrontMenuTreeApi() {
 }
 
 /**
+ * 根据ID获取单个前台菜单
+ */
+export function getFrontMenuByIdApi(id: number) {
+  return request({
+    url: `/sys/frontMenu/${id}`,
+    method: 'get'
+  })
+}
+
+/**
  * 添加前台菜单
  */
 export function createFrontMenuApi(data: any) {

@@ -17,6 +17,11 @@ public interface SysFrontMenuService extends IService<SysFrontMenu> {
     List<SysFrontMenu> getMenuTree();
 
     /**
+     * 根据ID获取单个菜单
+     */
+    SysFrontMenu getMenuById(Integer id);
+
+    /**
      * 获取前台导航菜单列表（公开接口，含 Redis 缓存）
      */
     List<FrontMenuVO> getNavList();

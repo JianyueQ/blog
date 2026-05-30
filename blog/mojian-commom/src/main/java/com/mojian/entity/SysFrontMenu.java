@@ -27,8 +27,11 @@ public class SysFrontMenu implements Serializable {
     @Schema(description = "路由路径或外链URL")
     private String path;
 
-    @Schema(description = "图标类名")
+    @Schema(description = "图标类名（亮色模式）")
     private String icon;
+
+    @Schema(description = "图标类名（暗色模式）")
+    private String iconDark;
 
     @Schema(description = "显示顺序")
     private Integer sort;

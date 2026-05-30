@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="选择前台图标"
+    :title="mode === 'dark' ? '选择暗色图标' : '选择亮色图标'"
     width="700px"
     append-to-body
     top="5vh"
@@ -45,6 +45,7 @@ import SvgIcon from '@/components/SvgIcon/index.vue'
 const props = defineProps<{
   modelValue: string
   visible: boolean
+  mode?: 'light' | 'dark'  // 图标模式：亮色或暗色
 }>()
 
 const emit = defineEmits(['update:modelValue', 'update:visible'])
@@ -57,20 +58,33 @@ const dialogVisible = computed({
 const searchText = ref('')
 
 // 通过 import.meta.glob 获取前台 SVG 图标文件列表
-const svgModules = import.meta.glob('../../icons/svg/front/*.svg', { eager: true })
-const iconNames = Object.keys(svgModules).map(path => {
-  const filename = path.split('/').pop()?.replace('.svg', '') || ''
-  return `front/${filename}`
-}).sort()
+// 分别导入两个目录（Vite 要求路径必须是静态字符串字面量）
+const lightSvgModules = import.meta.glob('../../icons/svg/front/*.svg', { eager: true })
+const darkSvgModules = import.meta.glob('../../icons/svg/front-dark/*.svg', { eager: true })
+
+// 根据 mode 动态选择图标列表
+const iconNames = computed(() => {
+  if (props.mode === 'dark') {
+    return Object.keys(darkSvgModules).map(path => {
+      const filename = path.split('/').pop()?.replace('.svg', '') || ''
+      return `front-dark/${filename}`
+    }).sort()
+  } else {
+    return Object.keys(lightSvgModules).map(path => {
+      const filename = path.split('/').pop()?.replace('.svg', '') || ''
+      return `front/${filename}`
+    }).sort()
+  }
+})
 
 const filteredIcons = computed(() => {
-  if (!searchText.value) return iconNames
+  if (!searchText.value) return iconNames.value
   const keyword = searchText.value.toLowerCase()
-  return iconNames.filter(name => name.toLowerCase().includes(keyword))
+  return iconNames.value.filter(name => name.toLowerCase().includes(keyword))
 })
 
 const getDisplayName = (name: string) => {
-  return name.replace('front/', '')
+  return name.replace('front-dark/', '').replace('front/', '')
 }
 
 const selectIcon = (iconName: string) => {

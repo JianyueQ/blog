@@ -39,6 +39,14 @@ public class SysFrontMenuServiceImpl extends ServiceImpl<SysFrontMenuMapper, Sys
     }
 
     /**
+     * 根据ID获取单个菜单（用于前台获取图标数据）
+     */
+    @Override
+    public SysFrontMenu getMenuById(Integer id) {
+        return getById(id);
+    }
+
+    /**
      * 获取前台导航菜单列表（公开接口使用）
      * 缓存策略：Spring Cache + Redis，键名 front_menu::nav_list
      */
@@ -93,6 +101,7 @@ public class SysFrontMenuServiceImpl extends ServiceImpl<SysFrontMenuMapper, Sys
             vo.setTitle(m.getTitle());
             vo.setPath(m.getPath());
             vo.setIcon(m.getIcon());
+            vo.setIconDark(m.getIconDark());
             vo.setSort(m.getSort());
             vo.setHidden(m.getHidden());
             vo.setIsExternal(m.getIsExternal());
