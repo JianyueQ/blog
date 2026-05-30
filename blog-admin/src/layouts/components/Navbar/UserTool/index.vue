@@ -35,17 +35,6 @@
           
           <!-- 菜单项 -->
           <div class="menu-items">
-            <div class="menu-item" @click="toGitee">
-              <div class="menu-icon">
-                <el-icon><Document /></el-icon>
-              </div>
-              <div class="menu-content">
-                <span class="menu-title">仓库地址</span>
-                <span class="menu-desc">查看项目源码</span>
-              </div>
-            </div>
-            
-            <div class="divider"></div>
             
             <div class="menu-item" @click="toProfile">
               <div class="menu-icon">
@@ -104,11 +93,6 @@ const toggleDropdown = () => {
 // 关闭下拉菜单
 const closeDropdown = () => {
   isOpen.value = false
-}
-
-const toGitee = () => {
-  window.open(settings.repository, '_blank')
-  closeDropdown()
 }
 
 const toProfile = () => {
