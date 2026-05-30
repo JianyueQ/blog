@@ -20,7 +20,7 @@ const routes = [
         path: "/",
         component: Layout,
         meta: {
-            title: "拾壹博客-一个专注于技术分享的博客平台",
+            title: "Jianyue博客-一个专注于技术分享的博客平台",
             loading: true
         },
         children: [
@@ -41,7 +41,7 @@ const routes = [
                 component: Archive,
                 meta: { 
                   transition: 'fade',
-                  title: '归档 - 拾壹博客',
+                  title: '归档 - Jianyue博客',
                   icon: 'fas fa-archive'
                 }
               },
@@ -51,7 +51,7 @@ const routes = [
                 component: Categories,
                 meta: {
                     transition: 'fade',
-                    title: "分类 - 拾壹博客",
+                    title: "分类 - Jianyue博客",
                     icon: 'fas fa-folder'
                  }
               },
@@ -61,7 +61,7 @@ const routes = [
                 component: Tags,
                 meta: {
                     transition: 'fade',
-                    title: '标签 - 拾壹博客',
+                    title: '标签 - Jianyue博客',
                     icon: 'fas fa-tags'
                 }
               },
@@ -70,7 +70,7 @@ const routes = [
                 name: 'Moments',
                 component: () => import('@/views/moments/index.vue'),
                 meta: {
-                  title: '说说 - 拾壹博客',
+                  title: '说说 - Jianyue博客',
                   icon: 'fas fa-comment-dots'
                 }
               },
@@ -80,7 +80,7 @@ const routes = [
                 component: Photos,
                 meta: {
                     transition: 'fade',
-                    title: '相册 - 拾壹博客',
+                    title: '相册 - Jianyue博客',
                     icon: 'fas fa-images'
                 }
               },
@@ -90,7 +90,7 @@ const routes = [
                 component: () => import('@/views/photos/detail.vue'),
                 meta: {
                     transition: 'fade',
-                    title: '相册详情 - 拾壹博客',
+                    title: '相册详情 - Jianyue博客',
                     icon: 'fas fa-images',
                     hidden: true
                 }
@@ -101,7 +101,7 @@ const routes = [
                 component: () => import(/* webpackPrefetch: true */ '@/views/hotSearch/index.vue'),
                 meta: { 
                   transition: 'fade',
-                  title: '热搜 - 拾壹博客',
+                  title: '热搜 - Jianyue博客',
                   icon: 'fas fa-fire'
                 }
               },
@@ -121,7 +121,7 @@ const routes = [
                 component: Messages,
                 meta: { 
                   transition: 'fade',
-                  title: '留言板 - 拾壹博客',
+                  title: '留言板 - Jianyue博客',
                   icon: 'fas fa-comments'
                 }
               },
@@ -131,7 +131,7 @@ const routes = [
                 component: () => import(/* webpackPrefetch: true */ '@/views/friends/index.vue'),
                 meta: { 
                   transition: 'fade',
-                  title: '友情链接 - 拾壹博客',
+                  title: '友情链接 - Jianyue博客',
                   icon: 'fas fa-user-friends'
                 }
               },
@@ -141,7 +141,7 @@ const routes = [
                 component: About,
                 meta: { 
                   transition: 'fade',
-                  title: '关于本站 - 拾壹博客',
+                  title: '关于本站 - Jianyue博客',
                   icon: 'fas fa-info-circle'
                 }
               },
@@ -159,7 +159,7 @@ const routes = [
                 name: 'Profile',
                 component: () => import(/* webpackPrefetch: true */ '@/views/profile/index.vue'),
                 meta: {
-                  title: '个人主页 - 拾壹博客',
+                  title: '个人主页 - Jianyue博客',
                   icon: 'fas fa-user',
                   hidden: true
                 }
@@ -169,7 +169,7 @@ const routes = [
                 name: 'Editor',
                 component: () => import(/* webpackPrefetch: true */ '@/views/editor/index.vue'),
                 meta: {
-                  title: '写文章 - 拾壹博客',
+                  title: '写文章 - Jianyue博客',
                   icon: 'fas fa-edit',
                   requireAuth: true,
                   hidden: true
@@ -180,7 +180,7 @@ const routes = [
                 name: 'Chat',
                 component: () => import(/* webpackPrefetch: true */ '@/views/chat/index.vue'),
                 meta: {
-                  title: '聊天 - 拾壹博客',
+                  title: '聊天 - Jianyue博客',
                   icon: 'fas fa-comments',
                   hidden: true
                 }

@@ -353,7 +353,7 @@ CREATE TABLE `sys_article`
     PRIMARY KEY (`id`) USING BTREE,
     INDEX          `user_id`(`user_id` ASC) USING BTREE,
     FULLTEXT       INDEX `title`(`title`) WITH PARSER `ngram`
-) ENGINE = InnoDB AUTO_INCREMENT = 296 CHARACTER SET = utf8mb4  COMMENT = '博客文章表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 296 CHARACTER SET = utf8mb4  COMMENT = 'Jianyue文章表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of sys_article
@@ -631,7 +631,7 @@ CREATE TABLE `sys_friend`
 -- Records of sys_friend
 -- ----------------------------
 INSERT INTO `sys_friend`
-VALUES (4, '拾壹博客', 'https://www.shiyit.com', 'https://img.shiyit.com/logo11.png', '一个专注技术分享的平台',
+VALUES (4, 'Jianyue博客', 'https://blog.jianyue.cloud', 'https://img.shiyit.com/logo11.png', '一个专注技术分享的平台',
         '2484913345@qq.com', 99, '1', 0, '2022-12-13 09:16:15', '2022-12-13 09:16:15');
 
 -- ----------------------------
@@ -784,7 +784,7 @@ INSERT INTO `sys_menu`
 VALUES (33, '32', 'operation', '/system/log/operation/index', '操作日志', 1, 'CircleCheckFilled', 'MENU',
         '2024-11-18 10:53:10', '2024-11-18 11:05:22', NULL, '', 0, '', 0);
 INSERT INTO `sys_menu`
-VALUES (34, '0', 'https://www.shiyit.com/', 'Layout', '拾壹博客', 99, 'Position', 'CATALOG', '2024-11-18 11:25:10',
+VALUES (34, '0', 'https://blog.jianyue.cloud/', 'Layout', 'Jianyue博客', 99, 'Position', 'CATALOG', '2024-11-18 11:25:10',
         '2024-11-18 11:43:25', NULL, '', 0, '', 1);
 INSERT INTO `sys_menu`
 VALUES (39, '14', '', '', '用户列表', 1, '', 'BUTTON', '2024-11-18 17:54:15', '2024-11-21 22:07:33', '', '', 1,
@@ -1404,7 +1404,7 @@ CREATE TABLE `sys_web_config`
 -- ----------------------------
 INSERT INTO `sys_web_config`
 VALUES (1, 'http://127.0.0.1:8800/localFile/local-plus/upload/e29c144950d45c11301503b80946ffb3-260x358.png', '墨笺博客',
-        '一个专注于技术分享的博客平台', '', 'https://www.shiyit.com', '拾壹', '十八岁以后我的梦想变成了买房买车。',
+        '一个专注于技术分享的博客平台', '', 'https://blog.jianyue.cloud', 'Jianyue', '十八岁以后我的梦想变成了买房买车。',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix', NULL, NULL, 'https://github.com/quequnlong',
         'https://gitee.com/quequnlong', '1248954763', '779881756', '1248954763@qq.com', '1248954763',
         '[\"qq\",\"wechat\",\"gitee\",\"qqGroup\",\"github\",\"email\"]', '[\"gitee\",\"qq\",\"wechat\"]', 1, 1,

@@ -62,8 +62,8 @@ public class ChatServiceImpl implements ChatService {
         chatSendMsgVo.setLocation(IpUtil.getIp2region(chatMsg.getIp()));
         webSocketServer.sendAllMessage(JSON.toJSONString(chatSendMsgVo));
 
-        //判断是否@拾壹小助手
-        String SHINY_XIA_ASSISTANT = "@拾壹小助手";
+        //判断是否@Jianyue小助手
+        String SHINY_XIA_ASSISTANT = "@Jianyue小助手";
         if (chatSendMsgVo.getContent().contains(SHINY_XIA_ASSISTANT)) {
             ThreadUtil.execAsync(() -> {
                 String replaceContent = chatSendMsgVo.getContent().replace(SHINY_XIA_ASSISTANT, "");
