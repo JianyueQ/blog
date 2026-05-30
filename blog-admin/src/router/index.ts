@@ -40,7 +40,13 @@ export const constantRoutes: RouteRecordRaw[] = [
     path: "/",
     name: "/",
     component: Layout,
-    redirect: "/dashboard",
+    redirect: (to) => {
+      // 第三方登录回调携带 token 时，跳转到登录页处理
+      if (to.query.token) {
+        return { path: '/login', query: { token: to.query.token } }
+      }
+      return '/dashboard'
+    },
     children: [
       {
         path: "dashboard",
