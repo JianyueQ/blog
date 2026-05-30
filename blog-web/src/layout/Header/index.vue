@@ -109,6 +109,7 @@
 
 <script>
 import { getThemeMode } from '@/utils/theme'
+import { getNavListApi } from '@/api/menu'
 
 export default {
   name: 'TheHeader',
@@ -119,104 +120,7 @@ export default {
       showMobileSearch: false,
       lastScrollTop: 0,
       isHeaderVisible: true,
-      menuItems: [
-        { 
-          name: '首页', 
-          path: '/', 
-          icon: 'front/home',
-          colorClass: 'home-link'
-        },
-        { 
-          name: '文章归档', 
-          path: '/archives', 
-          icon: 'front/archive',
-          colorClass: 'archive-link',
-          children: [
-            { 
-              name: '归档', 
-              path: '/archive', 
-              icon: 'front/clock',
-              colorClass: 'clock-link'
-            },
-            { 
-              name: '分类', 
-              path: '/categories', 
-              icon: 'front/folder',
-              colorClass: 'category-link'
-            },
-            { 
-              name: '标签', 
-              path: '/tags', 
-              icon: 'front/tags',
-              colorClass: 'tag-link'
-            }
-          ]
-        },
-        { 
-          name: '说说', 
-          path: '/moments', 
-          icon: 'front/comment',
-          colorClass: 'talk-link'
-        },
-        { 
-          name: '热搜', 
-          path: '/hotSearch', 
-          icon: 'front/fire',
-          colorClass: 'hot-link'
-        },
-        { 
-          name: '资源', 
-          path: '/resources', 
-          icon: 'front/cloud',
-          colorClass: 'resource-link'
-        },
-        { 
-          name: '相册', 
-          path: '/photos', 
-          icon: 'front/images',
-          colorClass: 'photos-link'
-        },
-        { 
-          name: '留言板', 
-          path: '/messages', 
-          icon: 'front/envelope',
-          colorClass: 'message-link'
-        },
-        { 
-          name: '友情链接', 
-          path: '/friends', 
-          icon: 'front/users',
-          colorClass: 'friend-link'
-        },
-        { 
-          name: '关于本站', 
-          path: '/about', 
-          icon: 'front/info',
-          colorClass: 'about-link',
-          children: [
-            { 
-              name: '关于我', 
-              path: '/about', 
-              icon: 'front/user',
-              colorClass: 'about-me-link'
-            },
-            { 
-              name: '网站源码', 
-              path: 'https://gitee.com/quequnlong', 
-              icon: 'front/gitee',
-              colorClass: 'github-link',
-              external: true 
-            },
-            { 
-              name: '后台管理', 
-              path: import.meta.env.VITE_APP_ADMIN_URL || 'http://localhost:3000',
-              icon: 'front/tv',
-              colorClass: 'admin-link',
-              external: true 
-            }
-          ]
-        }
-      ],
+      menuItems: [],
       activeDropdown: null,
       showDropdown: false,
       showSearch: false,
@@ -249,6 +153,33 @@ export default {
     }
   },
   methods: {
+    async fetchMenuList() {
+      try {
+        const res = await getNavListApi()
+        if (res.code === 200) {
+          // 将后端返回的数据转换为前端需要的格式
+          this.menuItems = this.transformMenuData(res.data)
+        }
+      } catch (error) {
+        console.error('获取前台菜单失败', error)
+      }
+    },
+    transformMenuData(data) {
+      return data.map(item => {
+        const menuItem = {
+          name: item.title,
+          path: item.isExternal === 1 ? item.path : item.path,
+          icon: item.icon,
+          iconDark: item.iconDark,
+          colorClass: item.colorClass || '',
+          external: item.isExternal === 1
+        }
+        if (item.children && item.children.length > 0) {
+          menuItem.children = this.transformMenuData(item.children)
+        }
+        return menuItem
+      })
+    },
     handleOpenMobileMenu() {
       this.$store.commit('SET_MOBILE_MENU_VISIBLE', true)
     },
@@ -329,6 +260,9 @@ export default {
     },
   },
   mounted() {
+    // 获取前台导航菜单
+    this.fetchMenuList()
+    
     // 监听主题变化
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {

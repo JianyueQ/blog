@@ -3,11 +3,14 @@ package com.mojian.vo.frontMenu;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Schema(name = "前台菜单返回VO")
-public class FrontMenuVO {
+public class FrontMenuVO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Schema(description = "菜单ID")
     private Integer id;

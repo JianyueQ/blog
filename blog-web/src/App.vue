@@ -7,7 +7,6 @@
     <TheFooter />
     <FloatingButtons />
     <Lantern />
-    <RandomVideo />
     <div class="cursor-container"></div>
     <ContextMenu ref="contextMenuRef" />
   </div>
@@ -23,7 +22,6 @@ import { initTheme } from '@/utils/theme'
 import SearchDialog from '@/components/Search/index.vue'
 import MobileMenu from '@/layout/MobileMenu/index.vue'
 import Lantern from '@/components/Lanterns/index.vue'
-import RandomVideo from '@/components/RandomVideo/index.vue'
 import { getCookie,removeCookie } from '@/utils/cookie'
 import ContextMenu from '@/components/ContextMenu/index.vue'
 
@@ -36,7 +34,6 @@ export default {
     SearchDialog,
     MobileMenu,
     Lantern,
-    RandomVideo,
     ContextMenu,
   },
 
