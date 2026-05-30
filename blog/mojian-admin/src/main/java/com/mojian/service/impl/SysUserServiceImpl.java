@@ -53,6 +53,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new RuntimeException("用户名已存在");
         }
         user.setPassword(BCrypt.hashpw(user.getPassword(),BCrypt.gensalt()));
+        // 未指定用户类型时，默认为后台用户
+        if (user.getUserType() == null) {
+            user.setUserType(Constants.USER_TYPE_ADMIN);
+        }
         save(user);
 
         //保存角色信息

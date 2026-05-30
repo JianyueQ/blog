@@ -32,6 +32,9 @@ public class SysUser implements Serializable {
     @Schema(description = "状态")
     private Integer status;
 
+    @Schema(description = "用户类型 0:前台用户 1:后台用户")
+    private Integer userType;
+
     @Schema(description = "ip地址")
     private String ip;
 

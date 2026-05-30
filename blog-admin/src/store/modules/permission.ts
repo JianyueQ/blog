@@ -27,6 +27,11 @@ const filterAsyncRoutes = (routes: RouteRecordRaw[], isRoot = true) => {
       tmpRoute.name = route.name;
     }
 
+    // 确保路由路径以 / 开头（Vue Router 4 要求）
+    if (tmpRoute.path && !tmpRoute.path.startsWith('/')) {
+      tmpRoute.path = '/' + tmpRoute.path;
+    }
+
     if(tmpRoute.component) {
       if (tmpRoute.component?.toString() == "Layout") {
         tmpRoute.component = Layout;

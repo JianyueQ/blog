@@ -362,6 +362,7 @@ const handleCallbackToken = () => {
       'not_bound': '该第三方账号未绑定后台账户，请先使用账号密码登录后在个人设置中绑定',
       'user_not_found': '绑定的用户不存在',
       'disabled': '账号已被禁用，请联系管理员',
+      'front_user': '该账号为前台用户，不允许登录后台管理系统',
     };
     ElMessage.error(errorMessages[error] || '登录失败');
     url.searchParams.delete('error');

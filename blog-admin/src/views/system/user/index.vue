@@ -22,6 +22,12 @@
             <el-option label="禁用" value="0" />
           </el-select>
         </el-form-item>
+        <el-form-item label="用户类型" prop="userType">
+          <el-select v-model="queryParams.userType" placeholder="请选择用户类型" clearable>
+            <el-option label="前台用户" :value="0" />
+            <el-option label="后台用户" :value="1" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -80,6 +86,13 @@
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
               {{ row.status === 1 ? '启用' : '禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="用户类型" align="center" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.userType === 1 ? 'danger' : 'info'">
+              {{ row.userType === 1 ? '后台用户' : '前台用户' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -234,6 +247,13 @@
             <el-radio :value="0">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
+
+        <el-form-item label="用户类型">
+          <el-radio-group v-model="userForm.userType">
+            <el-radio :value="1">后台用户</el-radio>
+            <el-radio :value="0">前台用户</el-radio>
+          </el-radio-group>
+        </el-form-item>
       </el-form>
 
       <template #footer>
@@ -308,7 +328,8 @@ const queryParams = reactive({
   pageSize: 10,
   nickname: '',
   status: '',
-  loginType: ''
+  loginType: '',
+  userType: null as number | null
 })
 
 const loading = ref(false)
@@ -341,6 +362,7 @@ const userForm = reactive({
   email: '',
   sex: 0,
   status: 1,
+  userType: 1,
   ip: undefined,
   ipLocation: undefined,
   lastLoginTime: undefined,
@@ -474,6 +496,7 @@ const handleAdd = () => {
   userForm.email = ''
   userForm.sex = 0
   userForm.status = 1
+  userForm.userType = 1
   userForm.ip = undefined
   userForm.ipLocation = undefined
   userForm.lastLoginTime = undefined

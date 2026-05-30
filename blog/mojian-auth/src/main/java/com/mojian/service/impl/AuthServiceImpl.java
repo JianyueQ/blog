@@ -134,6 +134,13 @@ public class AuthServiceImpl implements AuthService {
             throw new ServiceException("账号已被禁用");
         }
 
+        // 前台用户禁止登录后台
+        if ("ADMIN".equalsIgnoreCase(loginDTO.getSource())
+                && user.getUserType() != null
+                && user.getUserType() == Constants.USER_TYPE_FRONT) {
+            throw new ServiceException("前台用户不允许登录后台管理系统");
+        }
+
         if (user.getUsername().equals(Constants.TEST) && loginDTO.getSource().equalsIgnoreCase("PC")) {
             throw new ServiceException("演示用户不允许门户登录！");
         }
@@ -192,6 +199,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(dto.getEmail())
                 .avatar(avatar)
                 .status(Constants.YES)
+                .userType(Constants.USER_TYPE_FRONT)
                 .build();
         sysUserMapper.insert(sysUser);
 
@@ -289,24 +297,53 @@ public class AuthServiceImpl implements AuthService {
         // 获取用户ip信息
         String ipAddress = IpUtil.getIp();
         String ipSource = IpUtil.getIp2region(ipAddress);
-        // 判断是否已注册
-        SysUser user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, uuid));
-        if (ObjectUtils.isEmpty(user)) {
-            // 保存账号信息
+        String uuidStr = uuid.toString();
+
+        // ① 先查 sys_user_third_party 绑定表
+        SysUserThirdParty binding = sysUserThirdPartyService.getByThirdParty(source, uuidStr);
+        SysUser user = null;
+        if (binding != null) {
+            // 已绑定：通过绑定关系找到用户
+            user = userMapper.selectById(binding.getUserId());
+        }
+        if (user == null) {
+            // ② 再查 username = uuid（兼容历史数据：之前自动创建的用户）
+            user = userMapper.selectOne(new LambdaQueryWrapper<SysUser>()
+                    .eq(SysUser::getUsername, uuidStr));
+        }
+        if (user == null) {
+            // ③ 不存在：创建新用户 + 创建绑定记录
             user = SysUser.builder()
-                    .username(uuid.toString())
+                    .username(uuidStr)
                     .password(UUID.randomUUID().toString())
                     .loginType(source)
                     .lastLoginTime(LocalDateTime.now())
-                    .ipLocation(ipAddress)
-                    .ip(ipSource)
+                    .ipLocation(ipSource)
+                    .ip(ipAddress)
                     .status(Constants.YES)
-                    .nickname(source + "-" +getRandomString(6))
+                    .userType(Constants.USER_TYPE_FRONT)
+                    .nickname(source + "-" + getRandomString(6))
                     .avatar(jsonObject.get("avatar").toString())
                     .build();
             userMapper.insert(user);
-            //添加角色
             insertRole(user);
+            // 创建绑定记录
+            try {
+                sysUserThirdPartyService.bind(user.getId(), source, uuidStr,
+                        jsonObject.containsKey("nickname") ? jsonObject.get("nickname").toString() : null,
+                        jsonObject.get("avatar").toString());
+            } catch (ServiceException e) {
+                log.warn("创建绑定记录失败: {}", e.getMessage());
+            }
+        } else if (binding == null) {
+            // 已存在用户但无绑定记录，补建绑定关系
+            try {
+                sysUserThirdPartyService.bind(user.getId(), source, uuidStr,
+                        jsonObject.containsKey("nickname") ? jsonObject.get("nickname").toString() : null,
+                        jsonObject.containsKey("avatar") ? jsonObject.get("avatar").toString() : null);
+            } catch (ServiceException e) {
+                log.warn("补建绑定记录失败: {}", e.getMessage());
+            }
         }
 
         StpUtil.login(user.getId());
@@ -357,6 +394,13 @@ public class AuthServiceImpl implements AuthService {
         // 校验用户状态
         if (user.getStatus() != Constants.YES) {
             httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=disabled");
+            return;
+        }
+
+        // 前台用户禁止后台OAuth登录
+        if (user.getUserType() != null && user.getUserType() == Constants.USER_TYPE_FRONT) {
+            log.info("前台用户尝试后台OAuth登录被拒绝，userId={}", user.getId());
+            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=front_user");
             return;
         }
 
@@ -431,6 +475,7 @@ public class AuthServiceImpl implements AuthService {
                     .ipLocation(IpUtil.getIp2region(ip))
                     .ip(ip)
                     .status(Constants.YES)
+                    .userType(Constants.USER_TYPE_FRONT)
                     .nickname("applet-" + getRandomString(6))
                     .avatar(avatar)
                     .build();
@@ -485,6 +530,7 @@ public class AuthServiceImpl implements AuthService {
                     .ip(ip)
                     .ipLocation(ipSource)
                     .status(Constants.YES)
+                    .userType(Constants.USER_TYPE_FRONT)
                     .build();
             userMapper.insert(user);
 

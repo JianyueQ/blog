@@ -15,6 +15,12 @@ public class Constants {
 
     public static final int NO = 0;
 
+    /** 用户类型：前台用户 */
+    public static final int USER_TYPE_FRONT = 0;
+
+    /** 用户类型：后台用户 */
+    public static final int USER_TYPE_ADMIN = 1;
+
     public static final String CURRENT_USER = "current_user";
 
     public static final String PARENT_VIEW = "ParentView";

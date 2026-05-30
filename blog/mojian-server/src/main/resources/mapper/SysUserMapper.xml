@@ -6,6 +6,7 @@
         <id property="id" column="id" />
         <result property="username" column="username" />
         <result property="status" column="status" />
+        <result property="userType" column="user_type" />
         <result property="lastLoginTime" column="last_login_time" />
         <result property="ip" column="ip" />
         <result property="ipLocation" column="ip_location" />
@@ -30,6 +31,7 @@
                create_time,
                update_time,
                status,
+               user_type,
                ip,
                ip_location,
                os,
@@ -53,6 +55,7 @@
             u.username,
             u.create_time,
             u.status,
+            u.user_type,
             u.last_login_time,
             u.ip,
             u.ip_location,
@@ -71,6 +74,9 @@
             </if>
             <if test="sysUser.status != null">
                 and u.status = #{sysUser.status}
+            </if>
+            <if test="sysUser.userType != null">
+                and u.user_type = #{sysUser.userType}
             </if>
             <if test="sysUser.loginType != null and sysUser.loginType != ''">
                 and u.login_type = #{sysUser.loginType}
