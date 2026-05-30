@@ -112,7 +112,7 @@
                 </el-form-item>
                 <el-form-item>
                   <el-button 
-                    v-permission="['sys:user:update']"
+                    v-permission="['sys:profile:edit']"
                     type="primary" 
                     @click="submitUserForm"
                     :loading="submitLoading"
@@ -159,7 +159,7 @@
                 </el-form-item>
                 <el-form-item>
                   <el-button 
-                    v-permission="['sys:user:update']"
+                    v-permission="['sys:profile:password']"
                     type="primary" 
                     @click="submitPwdForm"
                     :loading="pwdLoading"
@@ -395,23 +395,23 @@ const handleAvatarChange = async (e: any) => {
   formData.append('file', file)
 
   try {
-    const res = await uploadApi(formData, 'avatar')
-    if (res.data?.code === 200 && res.data?.data) {
+    const res: any = await uploadApi(formData, 'avatar', 60000)
+    if (res.code === 200 && res.data) {
       // 更新用户头像
       const updateData = {
         id: userInfo.value.sysUser.id,
-        avatar: res.data.data.url || res.data.data
+        avatar: res.data
       }
       await updateUserProfileApi(updateData)
       ElMessage.success('头像上传成功')
       // 刷新用户信息
       await getUser()
     } else {
-      ElMessage.error(res.data?.msg || '上传失败')
+      ElMessage.error(res.message || '上传失败')
     }
   } catch (error: any) {
     console.error('上传失败:', error)
-    ElMessage.error(error.msg || '上传失败')
+    ElMessage.error(error.message || '上传失败')
   } finally {
     avatarUploading.value = false
     // 清空 input

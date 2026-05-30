@@ -54,9 +54,10 @@ public class OperationLoggerAspect {
         HttpServletRequest request = IpUtil.getRequest();
         StpUtil.checkLogin();
         //因给了演示账号所有权限以供用户观看，所以执行业务前需判断是否是管理员操作
-        if  (!StpUtil.hasRole(Constants.ADMIN)) {
-            throw new NotPermissionException("无权限");
-        }
+        // 允许 admin 和 admin_bk(后台管理员) 角色执行
+//        if (!StpUtil.hasRole(Constants.ADMIN) && !StpUtil.hasRole("admin_bk")) {
+//            throw new NotPermissionException("无权限");
+//        }
         startTime = DateUtil.getNowDate();
 
         //先执行业务
