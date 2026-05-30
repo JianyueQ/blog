@@ -17,10 +17,12 @@ import com.mojian.dto.user.LoginUserInfo;
 import com.mojian.entity.SysConfig;
 import com.mojian.entity.SysRole;
 import com.mojian.entity.SysThirdPartyConfig;
+import com.mojian.entity.SysUserThirdParty;
 import com.mojian.enums.LoginTypeEnum;
 import com.mojian.mapper.SysConfigMapper;
 import com.mojian.service.AuthService;
 import com.mojian.service.SysThirdPartyConfigService;
+import com.mojian.service.SysUserThirdPartyService;
 import com.mojian.entity.SysUser;
 import com.mojian.enums.MenuTypeEnum;
 import com.mojian.exception.ServiceException;
@@ -84,6 +86,8 @@ public class AuthServiceImpl implements AuthService {
     private final SysConfigMapper sysConfigMapper;
 
     private final SysThirdPartyConfigService sysThirdPartyConfigService;
+
+    private final SysUserThirdPartyService sysUserThirdPartyService;
 
 
     @Override
@@ -251,9 +255,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String renderAuth(String source) {
-        AuthRequest authRequest = getAuthRequest(source);
-        return authRequest.authorize(AuthStateUtils.createState());
+    public String renderAuth(String source, String sourceType) {
+        // 后台场景使用 source + "_admin" 作为 config_key
+        String configKey = "admin".equals(sourceType) ? source + "_admin" : source;
+        AuthRequest authRequest = getAuthRequest(configKey);
+        String state = AuthStateUtils.createState();
+        if ("admin".equals(sourceType)) {
+            state = "admin_" + state;
+        }
+        return authRequest.authorize(state);
     }
 
 
@@ -297,6 +307,51 @@ public class AuthServiceImpl implements AuthService {
 
         StpUtil.login(user.getId());
         httpServletResponse.sendRedirect(Constants.LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
+    }
+
+    @Override
+    public void adminAuthLogin(AuthCallback callback, String source, HttpServletResponse httpServletResponse) throws IOException {
+        // 后台场景使用 source + "_admin" 作为 config_key 获取后台 OAuth 配置
+        String configKey = source + "_admin";
+        AuthRequest authRequest = getAuthRequest(configKey);
+        AuthResponse<AuthUser> response = authRequest.login(callback);
+
+        if (response.getData() == null) {
+            log.info("管理员取消了 {} 第三方登录", source);
+            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL);
+            return;
+        }
+
+        String result = JSONObject.toJSONString(response.getData());
+        log.info("后台第三方登录验证结果:{}", result);
+
+        JSONObject jsonObject = JSON.parseObject(result);
+        String uuid = jsonObject.get("uuid").toString();
+
+        // 查询绑定关系
+        SysUserThirdParty binding = sysUserThirdPartyService.getByThirdParty(source, uuid);
+        if (binding == null) {
+            log.info("第三方账号未绑定后台用户，type={}, uuid={}", source, uuid);
+            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=not_bound");
+            return;
+        }
+
+        // 根据绑定的 user_id 查询用户
+        SysUser user = userMapper.selectById(binding.getUserId());
+        if (user == null) {
+            log.warn("绑定的用户不存在，userId={}", binding.getUserId());
+            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=user_not_found");
+            return;
+        }
+
+        // 校验用户状态
+        if (user.getStatus() != Constants.YES) {
+            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=disabled");
+            return;
+        }
+
+        StpUtil.login(user.getId());
+        httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
     }
 
     @Override
@@ -412,12 +467,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    private @NotNull AuthRequest getAuthRequest(String source) {
+    private @NotNull AuthRequest getAuthRequest(String configKey) {
         // 从数据库获取第三方登录配置
-        SysThirdPartyConfig config = sysThirdPartyConfigService.getByConfigKey(source);
+        SysThirdPartyConfig config = sysThirdPartyConfigService.getByConfigKey(configKey);
         if (config == null) {
-            throw new ServiceException("未配置" + source + "第三方登录");
+            throw new ServiceException("未配置" + configKey + "第三方登录");
         }
+
+        // 去掉 _admin 后缀，获取实际的第三方类型
+        String source = configKey.replace("_admin", "");
 
         AuthRequest authRequest = null;
         switch (source) {

@@ -31,15 +31,25 @@ public class AuthController {
 
     private final SysThirdPartyConfigService sysThirdPartyConfigService;
 
-    @RequestMapping("/api/auth/render/{source}")
+    @RequestMapping({"/api/auth/render/{source}", "/auth/render/{source}"})
     @Operation(summary = "获取第三方授权地址")
-    public Result<String> renderAuth(HttpServletResponse response, @PathVariable String source) {
-        return Result.success(authService.renderAuth(source));
+    public Result<String> renderAuth(HttpServletResponse response, 
+                                     @PathVariable String source,
+                                     @RequestParam(required = false) String sourceType) {
+        return Result.success(authService.renderAuth(source, sourceType));
     }
 
-    @RequestMapping("/api/auth/callback/{source}")
+    @RequestMapping({"/api/auth/callback/{source}", "/auth/callback/{source}"})
     public void login(AuthCallback callback, @PathVariable String source, HttpServletResponse httpServletResponse) throws IOException {
-        authService.authLogin(callback,source,httpServletResponse);
+        authService.authLogin(callback, source, httpServletResponse);
+    }
+
+    @SaIgnore
+    @RequestMapping({"/api/auth/callback/admin/{source}", "/auth/callback/admin/{source}"})
+    @Operation(summary = "后台第三方授权回调")
+    public void adminLogin(AuthCallback callback, @PathVariable String source,
+                           HttpServletResponse httpServletResponse) throws IOException {
+        authService.adminAuthLogin(callback, source, httpServletResponse);
     }
 
 

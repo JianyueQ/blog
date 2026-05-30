@@ -25,4 +25,9 @@ public class Constants {
 
     public static final String LOGIN_URL = "https://gp.jianyue.cloud/";
     public static final String LOGIN_SUCCESS_URL = "https://gp.jianyue.cloud/?token=";
+
+    /** 后台登录页地址 */
+    public static final String ADMIN_LOGIN_URL = "https://gp.jianyue.cloud/admin/login";
+    /** 后台登录成功重定向地址 */
+    public static final String ADMIN_LOGIN_SUCCESS_URL = "https://gp.jianyue.cloud/admin/?token=";
 }

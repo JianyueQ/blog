@@ -45,9 +45,10 @@ export function getAdminEnabledThirdPartyConfigApi() {
 /**
  * 获取第三方授权地址
  */
-export function getAuthRenderUrlApi(source: string) {
+export function getAuthRenderUrlApi(source: string, sourceType?: string) {
     return request({
         url: '/api/auth/render/' + source,
-        method: 'get'
+        method: 'get',
+        params: { sourceType }
     })
 }

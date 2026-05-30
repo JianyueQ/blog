@@ -299,7 +299,9 @@ const handleLogin = async () => {
 
 const handleSocialLogin = async (item: any) => {
   try {
-    const res = await getAuthRenderUrlApi(item.configKey);
+    // configKey 可能是 github_admin，取 _ 前的部分作为 source，由后端根据 sourceType 拼接
+    const source = item.configKey.replace(/_admin$/, '');
+    const res = await getAuthRenderUrlApi(source, 'admin');
     if (res.data) {
       // 跳转到第三方授权页面
       window.location.href = res.data;
@@ -349,13 +351,28 @@ const loadThirdPartyConfigs = async () => {
   }
 };
 
-/** 处理第三方登录回调（从 URL 中获取 token） */
+/** 处理第三方登录回调（从 URL 中获取 token 或 error） */
 const handleCallbackToken = () => {
   const url = new URL(window.location.href);
+
+  // 处理绑定/登录失败
+  const error = url.searchParams.get('error');
+  if (error) {
+    const errorMessages: Record<string, string> = {
+      'not_bound': '该第三方账号未绑定后台账户，请先使用账号密码登录后在个人设置中绑定',
+      'user_not_found': '绑定的用户不存在',
+      'disabled': '账号已被禁用，请联系管理员',
+    };
+    ElMessage.error(errorMessages[error] || '登录失败');
+    url.searchParams.delete('error');
+    window.history.replaceState({}, '', url.toString());
+    return;
+  }
+
+  // 处理登录成功
   const token = url.searchParams.get('token');
   if (token) {
     setToken(token);
-    // 清除 URL 中的 token 参数
     url.searchParams.delete('token');
     window.history.replaceState({}, '', url.toString());
     router.push('/');

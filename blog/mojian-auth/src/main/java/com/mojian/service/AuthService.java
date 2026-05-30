@@ -67,17 +67,20 @@ public interface AuthService {
 
     /**
      * 获取第三方授权地址
-     * @param source
-     * @return
+     * @param source 第三方来源：github/gitee/qq
+     * @param sourceType 来源类型：空=前台，admin=后台
      */
-    String renderAuth(String source);
+    String renderAuth(String source, String sourceType);
 
     /**
-     * 第三方授权登录
-     * @param source
-     * @param httpServletResponse
+     * 前台第三方授权登录
      */
-    void authLogin(AuthCallback callback,String source, HttpServletResponse httpServletResponse) throws IOException;
+    void authLogin(AuthCallback callback, String source, HttpServletResponse httpServletResponse) throws IOException;
+
+    /**
+     * 后台第三方授权登录
+     */
+    void adminAuthLogin(AuthCallback callback, String source, HttpServletResponse httpServletResponse) throws IOException;
 
     /**
      * 小程序登录

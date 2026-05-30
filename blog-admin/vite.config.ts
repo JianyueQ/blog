@@ -10,6 +10,7 @@ export default defineConfig(({ command, mode }: ConfigEnv): UserConfig => {
   const env = loadEnv(mode, process.cwd())
   
   return {
+    base: '/admin/',
     css: {
       preprocessorOptions: {
         scss: {
