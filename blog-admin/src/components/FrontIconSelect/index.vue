@@ -58,23 +58,23 @@ const dialogVisible = computed({
 const searchText = ref('')
 
 // 通过 import.meta.glob 获取前台 SVG 图标文件列表
-// 分别导入两个目录（Vite 要求路径必须是静态字符串字面量）
-const lightSvgModules = import.meta.glob('../../icons/svg/front/*.svg', { eager: true })
-const darkSvgModules = import.meta.glob('../../icons/svg/front-dark/*.svg', { eager: true })
+// 统一从 front/ 目录读取（亮色和暗色图标共存于同一目录）
+const frontSvgModules = import.meta.glob('../../icons/svg/front/*.svg', { eager: true })
 
 // 根据 mode 动态选择图标列表
+// 亮色图标：文件名不含 -dark 后缀；暗色图标：文件名含 -dark 后缀
 const iconNames = computed(() => {
-  if (props.mode === 'dark') {
-    return Object.keys(darkSvgModules).map(path => {
+  return Object.keys(frontSvgModules)
+    .map(path => {
       const filename = path.split('/').pop()?.replace('.svg', '') || ''
-      return `front-dark/${filename}`
-    }).sort()
-  } else {
-    return Object.keys(lightSvgModules).map(path => {
-      const filename = path.split('/').pop()?.replace('.svg', '') || ''
-      return `front/${filename}`
-    }).sort()
-  }
+      return { filename, fullPath: `front/${filename}` }
+    })
+    .filter(({ filename }) => {
+      const isDark = filename.endsWith('-dark')
+      return props.mode === 'dark' ? isDark : !isDark
+    })
+    .map(({ fullPath }) => fullPath)
+    .sort()
 })
 
 const filteredIcons = computed(() => {
@@ -84,7 +84,7 @@ const filteredIcons = computed(() => {
 })
 
 const getDisplayName = (name: string) => {
-  return name.replace('front-dark/', '').replace('front/', '')
+  return name.replace('front/', '').replace('-dark', '')
 }
 
 const selectIcon = (iconName: string) => {
