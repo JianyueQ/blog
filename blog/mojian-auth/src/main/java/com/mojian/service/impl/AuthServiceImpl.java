@@ -255,12 +255,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String renderAuth(String source, String sourceType) {
+    public String renderAuth(String source, String sourceType, String purpose) {
         // 后台场景使用 source + "_admin" 作为 config_key
         String configKey = "admin".equals(sourceType) ? source + "_admin" : source;
         AuthRequest authRequest = getAuthRequest(configKey);
         String state = AuthStateUtils.createState();
-        if ("admin".equals(sourceType)) {
+        if ("bind".equals(purpose)) {
+            // 绑定场景，将当前用户ID编码到 state 中
+            Integer userId = StpUtil.getLoginIdAsInt();
+            state = "bind_" + userId + "_" + state;
+        } else if ("admin".equals(sourceType)) {
             state = "admin_" + state;
         }
         return authRequest.authorize(state);
@@ -311,6 +315,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void adminAuthLogin(AuthCallback callback, String source, HttpServletResponse httpServletResponse) throws IOException {
+        // 检测是否为绑定流程
+        if (callback.getState() != null && callback.getState().startsWith("bind_")) {
+            handleAdminBind(callback, source, httpServletResponse);
+            return;
+        }
+
         // 后台场景使用 source + "_admin" 作为 config_key 获取后台 OAuth 配置
         String configKey = source + "_admin";
         AuthRequest authRequest = getAuthRequest(configKey);
@@ -352,6 +362,48 @@ public class AuthServiceImpl implements AuthService {
 
         StpUtil.login(user.getId());
         httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
+    }
+
+    /**
+     * 处理后台绑定第三方账号流程
+     * state 格式: bind_{userId}_{randomState}
+     */
+    private void handleAdminBind(AuthCallback callback, String source, HttpServletResponse httpServletResponse) throws IOException {
+        String configKey = source + "_admin";
+        AuthRequest authRequest = getAuthRequest(configKey);
+        AuthResponse<AuthUser> response = authRequest.login(callback);
+
+        if (response.getData() == null) {
+            log.info("用户取消了 {} 绑定", source);
+            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_FAIL_URL + "用户取消授权");
+            return;
+        }
+
+        // 从 state 中提取用户ID: bind_{userId}_{randomState}
+        String state = callback.getState();
+        Integer userId;
+        try {
+            String[] parts = state.split("_", 3);
+            userId = Integer.parseInt(parts[1]);
+        } catch (Exception e) {
+            log.warn("绑定失败：无法从 state 解析用户ID, state={}", state);
+            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_FAIL_URL + "参数异常");
+            return;
+        }
+
+        JSONObject jsonObject = JSON.parseObject(JSONObject.toJSONString(response.getData()));
+        String uuid = jsonObject.get("uuid").toString();
+        String nickname = jsonObject.containsKey("nickname") ? jsonObject.get("nickname").toString() : source + "用户";
+        String avatar = jsonObject.containsKey("avatar") ? jsonObject.get("avatar").toString() : null;
+
+        try {
+            sysUserThirdPartyService.bind(userId, source, uuid, nickname, avatar);
+            log.info("用户 {} 绑定 {} 成功", userId, source);
+            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_SUCCESS_URL);
+        } catch (ServiceException e) {
+            log.warn("绑定失败: {}", e.getMessage());
+            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_FAIL_URL + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+        }
     }
 
     @Override

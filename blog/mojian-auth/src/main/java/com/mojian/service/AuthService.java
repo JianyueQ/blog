@@ -69,8 +69,9 @@ public interface AuthService {
      * 获取第三方授权地址
      * @param source 第三方来源：github/gitee/qq
      * @param sourceType 来源类型：空=前台，admin=后台
+     * @param purpose 用途：空=登录，bind=绑定
      */
-    String renderAuth(String source, String sourceType);
+    String renderAuth(String source, String sourceType, String purpose);
 
     /**
      * 前台第三方授权登录

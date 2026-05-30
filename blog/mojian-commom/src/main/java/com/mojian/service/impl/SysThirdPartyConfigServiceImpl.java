@@ -3,7 +3,10 @@ package com.mojian.service.impl;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import com.mojian.common.Constants;
 import com.mojian.mapper.SysThirdPartyConfigMapper;
 import com.mojian.entity.SysThirdPartyConfig;
 import com.mojian.service.SysThirdPartyConfigService;
@@ -39,6 +42,7 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
      * 根据configKey获取配置（用于AuthServiceImpl构建AuthRequest）
      */
     @Override
+    @Cacheable(cacheNames = Constants.CACHE_THIRD_PARTY_CONFIG, key = "#configKey")
     public SysThirdPartyConfig getByConfigKey(String configKey) {
         return baseMapper.selectOne(new LambdaQueryWrapper<SysThirdPartyConfig>()
                 .eq(SysThirdPartyConfig::getConfigKey, configKey)
@@ -49,6 +53,7 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
      * 获取已启用的前台第三方登录配置列表（公开接口，脱敏返回）
      */
     @Override
+    @Cacheable(cacheNames = Constants.CACHE_THIRD_PARTY_CONFIG, key = "'" + Constants.CACHE_THIRD_PARTY_FRONT_ENABLED + "'")
     public List<SysThirdPartyConfig> getFrontEnabledList() {
         List<SysThirdPartyConfig> list = list(new LambdaQueryWrapper<SysThirdPartyConfig>()
                 .eq(SysThirdPartyConfig::getConfigSource, "front")
@@ -67,6 +72,7 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
      * 获取已启用的后台第三方登录配置列表（公开接口，脱敏返回）
      */
     @Override
+    @Cacheable(cacheNames = Constants.CACHE_THIRD_PARTY_CONFIG, key = "'" + Constants.CACHE_THIRD_PARTY_ADMIN_ENABLED + "'")
     public List<SysThirdPartyConfig> getAdminEnabledList() {
         List<SysThirdPartyConfig> list = list(new LambdaQueryWrapper<SysThirdPartyConfig>()
                 .eq(SysThirdPartyConfig::getConfigSource, "admin")
@@ -85,6 +91,7 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
      * 修改第三方登录配置
      */
     @Override
+    @CacheEvict(cacheNames = Constants.CACHE_THIRD_PARTY_CONFIG, allEntries = true)
     public boolean update(SysThirdPartyConfig config) {
         return updateById(config);
     }

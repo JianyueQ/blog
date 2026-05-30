@@ -25,6 +25,12 @@ export const constantRoutes: RouteRecordRaw[] = [
   },
 
   {
+    path: "/bindCallback",
+    component: () => import("@/views/bindCallback/index.vue"),
+    meta: { hidden: true },
+  },
+
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/error-page/404.vue'),
     meta: { hidden: true },

@@ -166,6 +166,13 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
+        <!--JustAuth第三方登录模块-->
+        <dependency>
+            <groupId>me.zhyd.oauth</groupId>
+            <artifactId>JustAuth</artifactId>
+            <version>1.16.7</version>
+        </dependency>
+
         <!--hutool utils-->
         <dependency>
             <groupId>cn.hutool</groupId>

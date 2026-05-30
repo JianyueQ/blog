@@ -35,8 +35,9 @@ public class AuthController {
     @Operation(summary = "获取第三方授权地址")
     public Result<String> renderAuth(HttpServletResponse response, 
                                      @PathVariable String source,
-                                     @RequestParam(required = false) String sourceType) {
-        return Result.success(authService.renderAuth(source, sourceType));
+                                     @RequestParam(required = false) String sourceType,
+                                     @RequestParam(required = false) String purpose) {
+        return Result.success(authService.renderAuth(source, sourceType, purpose));
     }
 
     @RequestMapping({"/api/auth/callback/{source}", "/auth/callback/{source}"})

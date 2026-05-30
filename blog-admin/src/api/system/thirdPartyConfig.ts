@@ -45,10 +45,41 @@ export function getAdminEnabledThirdPartyConfigApi() {
 /**
  * 获取第三方授权地址
  */
-export function getAuthRenderUrlApi(source: string, sourceType?: string) {
+export function getAuthRenderUrlApi(source: string, sourceType?: string, purpose?: string) {
     return request({
         url: '/api/auth/render/' + source,
         method: 'get',
-        params: { sourceType }
+        params: { sourceType, purpose }
+    })
+}
+
+/**
+ * 获取当前用户绑定的第三方账号列表
+ */
+export function listUserThirdPartyApi() {
+    return request({
+        url: '/sys/userThirdParty/list',
+        method: 'get'
+    })
+}
+
+/**
+ * 解绑第三方账号
+ */
+export function unbindThirdPartyApi(type: string) {
+    return request({
+        url: '/sys/userThirdParty/unbind/' + type,
+        method: 'delete'
+    })
+}
+
+/**
+ * 绑定第三方账号（通过授权码）
+ */
+export function bindThirdPartyApi(type: string, code: string) {
+    return request({
+        url: '/sys/userThirdParty/bind/' + type,
+        method: 'post',
+        params: { code }
     })
 }

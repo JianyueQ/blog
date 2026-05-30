@@ -35,4 +35,11 @@ public class SysUserThirdPartyController {
         Integer userId = StpUtil.getLoginIdAsInt();
         return Result.success(sysUserThirdPartyService.unbind(userId, type));
     }
+
+    @PostMapping("/bind/{type}")
+    @Operation(summary = "绑定第三方账号（通过授权码）")
+    public Result<Boolean> bind(@PathVariable String type, @RequestParam String code) {
+        Integer userId = StpUtil.getLoginIdAsInt();
+        return Result.success(sysUserThirdPartyService.bindByCode(userId, type, code));
+    }
 }

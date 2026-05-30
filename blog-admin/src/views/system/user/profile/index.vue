@@ -170,6 +170,66 @@
                 </el-form-item>
               </el-form>
             </el-tab-pane>
+
+            <!-- 账号绑定 -->
+            <el-tab-pane label="账号绑定" name="binding">
+              <div class="binding-container">
+                <div class="binding-header">
+                  <span>绑定第三方账号后，可使用第三方快捷登录</span>
+                </div>
+                <div class="binding-list" v-loading="bindingLoading">
+                  <div 
+                    v-for="item in thirdPartyList" 
+                    :key="item.configKey"
+                    class="binding-item"
+                  >
+                    <div class="binding-item-left">
+                      <div class="binding-icon">
+                        <img
+                          v-if="item.icon && item.icon.startsWith('http')"
+                          :src="item.icon"
+                          :alt="item.configName"
+                          class="binding-icon-img"
+                        />
+                        <svg-icon
+                          v-else-if="item.icon"
+                          :name="item.icon.replace(/\.svg$/, '')"
+                          :size="24"
+                        />
+                      </div>
+                      <div class="binding-info">
+                        <div class="binding-name">{{ item.configName }}</div>
+                        <div class="binding-status" v-if="item.bound">
+                          <el-tag type="success" size="small">已绑定</el-tag>
+                          <span class="binding-nickname">{{ item.thirdPartyNickname }}</span>
+                        </div>
+                        <div class="binding-status" v-else>
+                          <el-tag type="info" size="small">未绑定</el-tag>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="binding-actions">
+                      <el-button 
+                        v-if="item.bound" 
+                        type="danger" 
+                        link 
+                        @click="handleUnbind(item)"
+                      >
+                        解绑
+                      </el-button>
+                      <el-button 
+                        v-else 
+                        type="primary" 
+                        link 
+                        @click="handleBind(item)"
+                      >
+                        绑定
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -178,9 +238,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserProfileApi, updateUserProfileApi, updateUserPwdApi } from '@/api/system/user'
 import { uploadApi } from '@/api/file'
+import { 
+  getAdminEnabledThirdPartyConfigApi, 
+  getAuthRenderUrlApi,
+  listUserThirdPartyApi,
+  unbindThirdPartyApi 
+} from '@/api/system/thirdPartyConfig'
 
 const activeTab = ref('basic')
 const userFormRef = ref()
@@ -245,6 +311,11 @@ const pwdRules = reactive<any>({
 // 添加loading状态
 const submitLoading = ref(false)
 const pwdLoading = ref(false)
+const bindingLoading = ref(false)
+
+// 第三方绑定相关
+const thirdPartyList = ref<any[]>([])
+const boundList = ref<any[]>([])
 
 // 获取用户信息
 const getUser = async () => {
@@ -325,18 +396,18 @@ const handleAvatarChange = async (e: any) => {
 
   try {
     const res = await uploadApi(formData, 'avatar')
-    if (res.code === 200 && res.data) {
+    if (res.data?.code === 200 && res.data?.data) {
       // 更新用户头像
       const updateData = {
         id: userInfo.value.sysUser.id,
-        avatar: res.data.url || res.data
+        avatar: res.data.data.url || res.data.data
       }
       await updateUserProfileApi(updateData)
       ElMessage.success('头像上传成功')
       // 刷新用户信息
       await getUser()
     } else {
-      ElMessage.error(res.msg || '上传失败')
+      ElMessage.error(res.data?.msg || '上传失败')
     }
   } catch (error: any) {
     console.error('上传失败:', error)
@@ -352,7 +423,91 @@ const handleAvatarChange = async (e: any) => {
 
 onMounted(() => {
   getUser()
+  getThirdPartyList()
 })
+
+// 获取第三方配置列表
+const getThirdPartyList = async () => {
+  try {
+    bindingLoading.value = true
+    // 获取所有后台第三方配置
+    const configRes = await getAdminEnabledThirdPartyConfigApi()
+    const configs = configRes.data || []
+    
+    // 获取当前用户已绑定的列表
+    const boundRes = await listUserThirdPartyApi()
+    boundList.value = boundRes.data || []
+    
+    // 合并数据
+    thirdPartyList.value = configs.map((config: any) => {
+      // configKey 是 github_admin，提取 source
+      const source = config.configKey.replace(/_admin$/, '')
+      const bound = boundList.value.find((b: any) => b.thirdPartyType === source)
+      return {
+        ...config,
+        source,
+        bound: !!bound,
+        thirdPartyNickname: bound?.thirdPartyNickname,
+        thirdPartyAvatar: bound?.thirdPartyAvatar
+      }
+    })
+  } catch (error) {
+    console.error('获取第三方配置失败:', error)
+  } finally {
+    bindingLoading.value = false
+  }
+}
+
+// 绑定第三方账号
+const handleBind = async (item: any) => {
+  try {
+    // 获取授权地址，purpose=bind 标识绑定流程
+    const res = await getAuthRenderUrlApi(item.source, 'admin', 'bind')
+    if (res.data) {
+      // 打开授权窗口
+      const authWindow = window.open(res.data, '_blank', 'width=800,height=600')
+      
+      // 监听绑定结果
+      const channel = new BroadcastChannel('third_party_bind')
+      channel.onmessage = (event) => {
+        channel.close()
+        if (event.data.success) {
+          ElMessage.success('绑定成功')
+        } else {
+          ElMessage.error(event.data.msg || '绑定失败')
+        }
+        getThirdPartyList()
+      }
+
+      // 窗口关闭检测（用户手动关闭未授权）
+      const checkClosed = setInterval(() => {
+        if (authWindow?.closed) {
+          clearInterval(checkClosed)
+          channel.close()
+        }
+      }, 500)
+    }
+  } catch (error) {
+    ElMessage.error('获取授权地址失败')
+  }
+}
+
+// 解绑第三方账号
+const handleUnbind = (item: any) => {
+  ElMessageBox.confirm(`确认解绑「${item.configName}」账号吗？`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    try {
+      await unbindThirdPartyApi(item.source)
+      ElMessage.success('解绑成功')
+      getThirdPartyList()
+    } catch (error) {
+      ElMessage.error('解绑失败')
+    }
+  }).catch(() => {})
+}
 </script>
 
 <style lang="scss" scoped>
@@ -511,6 +666,84 @@ onMounted(() => {
     
     &.is-active {
       font-weight: 600;
+    }
+  }
+}
+
+// 账号绑定样式
+.binding-container {
+  padding: 20px;
+  
+  .binding-header {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .binding-list {
+    .binding-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: #f5f7fa;
+      border-radius: 8px;
+      transition: all 0.3s;
+      
+      &:hover {
+        background: #e8f4ff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      
+      .binding-item-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .binding-icon {
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          
+          .binding-icon-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+          }
+        }
+        
+        .binding-info {
+          .binding-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 6px;
+          }
+          
+          .binding-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            
+            .binding-nickname {
+              color: #666;
+              font-size: 13px;
+            }
+          }
+        }
+      }
+      
+      .binding-actions {
+        .el-button {
+          font-size: 14px;
+        }
+      }
     }
   }
 }

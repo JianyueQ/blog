@@ -30,4 +30,9 @@ public interface SysUserThirdPartyService extends IService<SysUserThirdParty> {
      * 解绑第三方账号
      */
     boolean unbind(Integer userId, String thirdPartyType);
+
+    /**
+     * 通过授权码绑定第三方账号
+     */
+    boolean bindByCode(Integer userId, String thirdPartyType, String code);
 }
