@@ -1,0 +1,47 @@
+server:
+  port: 8800
+spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/blog?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai&tinyInt1isBit=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: cfa415a5902ef33d0f51e152f32f3da1
+  data:
+    redis:
+      host: 127.0.0.1
+      database: 8
+      timeout: 3000
+      port: 6379
+      password: 25fX1QKfuX6XgN21MRPlHMvvby4Upen5UwvaGtxS
+
+
+#==============================knife4j配置==============================
+
+#==============================公众号配置==============================
+wechat:
+  app-id:
+  # 公众号AppSecret
+  secret:
+  # 公众号Token
+  token:
+  # 公众号AES Key
+  aesKey:
+
+  appletAppId:
+  appletSecret:
+
+#==============================豆包推理AI配置=======================================
+ai:
+  # API Key
+  apiKey:
+  baseUrl: https://ark.cn-beijing.volces.com/api/v3
+  # 推理接入点ID
+  model:
+
+#==============================邮箱配置=======================================
+
+
