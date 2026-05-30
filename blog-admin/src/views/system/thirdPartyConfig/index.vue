@@ -4,10 +4,16 @@
       <template #header>
         <div class="card-header">
           <span>第三方登录配置</span>
-          <el-button type="primary" @click="handleRefresh">
-            <el-icon><Refresh /></el-icon>
-            刷新
-          </el-button>
+          <div class="header-actions">
+            <el-radio-group v-model="configSource" @change="handleSourceChange" size="default">
+              <el-radio-button label="front">前台配置</el-radio-button>
+              <el-radio-button label="admin">后台配置</el-radio-button>
+            </el-radio-group>
+            <el-button type="primary" @click="handleRefresh">
+              <el-icon><Refresh /></el-icon>
+              刷新
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -139,6 +145,8 @@ const dataList = ref<any[]>([])
 const open = ref(false)
 const form = ref<any>({})
 const formRef = ref()
+// 配置来源：front=前台，admin=后台
+const configSource = ref('front')
 
 const rules = {
   appId: [{ required: true, message: "请输入AppId", trigger: "blur" }],
@@ -152,7 +160,7 @@ const getSvgName = (icon: string) => {
 
 const getList = () => {
   loading.value = true
-  listThirdPartyConfigApi()
+  listThirdPartyConfigApi({ configSource: configSource.value })
     .then((response: any) => {
       // 后端返回 IPage 分页对象，数据在 records 中
       dataList.value = response.data?.records || response.data || []
@@ -160,6 +168,11 @@ const getList = () => {
     .finally(() => {
       loading.value = false
     })
+}
+
+/** 切换前后台配置来源 */
+const handleSourceChange = () => {
+  getList()
 }
 
 const handleRefresh = () => {
@@ -215,6 +228,12 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .icon-preview {

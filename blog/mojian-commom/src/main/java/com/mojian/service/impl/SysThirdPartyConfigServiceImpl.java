@@ -30,6 +30,7 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
         LambdaQueryWrapper<SysThirdPartyConfig> wrapper = new LambdaQueryWrapper<>();
         wrapper.like(StringUtils.isNotBlank(query.getConfigName()), SysThirdPartyConfig::getConfigName, query.getConfigName());
         wrapper.eq(query.getStatus() != null, SysThirdPartyConfig::getStatus, query.getStatus());
+        wrapper.eq(StringUtils.isNotBlank(query.getConfigSource()), SysThirdPartyConfig::getConfigSource, query.getConfigSource());
         wrapper.orderByAsc(SysThirdPartyConfig::getSort);
         return page(PageUtil.getPage(), wrapper);
     }
