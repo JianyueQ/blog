@@ -23,9 +23,14 @@ public interface SysThirdPartyConfigService extends IService<SysThirdPartyConfig
     SysThirdPartyConfig getByConfigKey(String configKey);
 
     /**
-     * 获取已启用的第三方登录配置列表（公开接口，脱敏返回）
+     * 获取已启用的前台第三方登录配置列表（公开接口，脱敏返回）
      */
-    List<SysThirdPartyConfig> getEnabledList();
+    List<SysThirdPartyConfig> getFrontEnabledList();
+
+    /**
+     * 获取已启用的后台第三方登录配置列表（公开接口，脱敏返回）
+     */
+    List<SysThirdPartyConfig> getAdminEnabledList();
 
     /**
      * 修改第三方登录配置

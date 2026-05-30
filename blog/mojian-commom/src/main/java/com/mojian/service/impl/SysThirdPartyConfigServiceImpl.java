@@ -45,11 +45,30 @@ public class SysThirdPartyConfigServiceImpl extends ServiceImpl<SysThirdPartyCon
     }
 
     /**
-     * 获取已启用的第三方登录配置列表（公开接口，脱敏返回）
+     * 获取已启用的前台第三方登录配置列表（公开接口，脱敏返回）
      */
     @Override
-    public List<SysThirdPartyConfig> getEnabledList() {
+    public List<SysThirdPartyConfig> getFrontEnabledList() {
         List<SysThirdPartyConfig> list = list(new LambdaQueryWrapper<SysThirdPartyConfig>()
+                .eq(SysThirdPartyConfig::getConfigSource, "front")
+                .eq(SysThirdPartyConfig::getStatus, 1)
+                .orderByAsc(SysThirdPartyConfig::getSort));
+        // 脱敏：只返回前端需要的字段
+        list.forEach(item -> {
+            item.setAppId(null);
+            item.setAppSecret(null);
+            item.setRedirectUrl(null);
+        });
+        return list;
+    }
+
+    /**
+     * 获取已启用的后台第三方登录配置列表（公开接口，脱敏返回）
+     */
+    @Override
+    public List<SysThirdPartyConfig> getAdminEnabledList() {
+        List<SysThirdPartyConfig> list = list(new LambdaQueryWrapper<SysThirdPartyConfig>()
+                .eq(SysThirdPartyConfig::getConfigSource, "admin")
                 .eq(SysThirdPartyConfig::getStatus, 1)
                 .orderByAsc(SysThirdPartyConfig::getSort));
         // 脱敏：只返回前端需要的字段

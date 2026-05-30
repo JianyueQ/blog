@@ -105,10 +105,17 @@ public class AuthController {
     }
 
     @SaIgnore
-    @Operation(summary = "获取已启用的第三方登录配置列表")
-    @GetMapping({"/api/thirdPartyConfig/enabledList", "/thirdPartyConfig/enabledList"})
-    public Result<List<SysThirdPartyConfig>> getEnabledThirdPartyConfig() {
-        return Result.success(sysThirdPartyConfigService.getEnabledList());
+    @Operation(summary = "获取已启用的前台第三方登录配置列表")
+    @GetMapping({"/api/thirdPartyConfig/front/enabledList", "/thirdPartyConfig/front/enabledList"})
+    public Result<List<SysThirdPartyConfig>> getFrontEnabledThirdPartyConfig() {
+        return Result.success(sysThirdPartyConfigService.getFrontEnabledList());
+    }
+
+    @SaIgnore
+    @Operation(summary = "获取已启用的后台第三方登录配置列表")
+    @GetMapping({"/api/thirdPartyConfig/admin/enabledList", "/thirdPartyConfig/admin/enabledList"})
+    public Result<List<SysThirdPartyConfig>> getAdminEnabledThirdPartyConfig() {
+        return Result.success(sysThirdPartyConfigService.getAdminEnabledList());
     }
 
 }

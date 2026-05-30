@@ -182,7 +182,7 @@ import settings from "@/config/settings";
 import SliderVerify from "./components/SliderVerify.vue";
 import { getCaptchaSwitchApi } from "@/api/system/auth";
 import {
-  getEnabledThirdPartyConfigApi,
+  getAdminEnabledThirdPartyConfigApi,
   getAuthRenderUrlApi,
 } from "@/api/system/thirdPartyConfig";
 
@@ -341,7 +341,7 @@ onUnmounted(() => {
 /** 加载已启用的第三方登录配置 */
 const loadThirdPartyConfigs = async () => {
   try {
-    const res = await getEnabledThirdPartyConfigApi();
+    const res = await getAdminEnabledThirdPartyConfigApi();
     thirdPartyConfigs.value = res.data || [];
   } catch (e) {
     // 接口异常时不阻塞页面

@@ -23,6 +23,9 @@ public class SysThirdPartyConfig implements Serializable {
     @Schema(description = "配置键名：github/gitee/qq")
     private String configKey;
 
+    @Schema(description = "配置来源：front前台/admin后台")
+    private String configSource;
+
     @Schema(description = "配置名称：Github/Gitee/QQ")
     private String configName;
 

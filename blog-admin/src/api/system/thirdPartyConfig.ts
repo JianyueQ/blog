@@ -33,11 +33,11 @@ export function updateThirdPartyConfigApi(data: any) {
 }
 
 /**
- * 获取已启用的第三方登录配置列表（公开接口，无需登录）
+ * 获取已启用的后台第三方登录配置列表（公开接口，无需登录）
  */
-export function getEnabledThirdPartyConfigApi() {
+export function getAdminEnabledThirdPartyConfigApi() {
     return request({
-        url: '/thirdPartyConfig/enabledList',
+        url: '/thirdPartyConfig/admin/enabledList',
         method: 'get'
     })
 }
