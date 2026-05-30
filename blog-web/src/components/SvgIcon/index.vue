@@ -19,7 +19,7 @@ export default {
   },
   computed: {
     iconName() {
-      return `#icon-${this.iconClass}`
+      return `#icon-${this.iconClass.replace(/\//g, '-')}`
     },
     svgClass() {
       if (this.className) {

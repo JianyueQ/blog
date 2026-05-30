@@ -25,7 +25,7 @@
         <el-table-column label="菜单名称" prop="title" show-overflow-tooltip min-width="150" />
         <el-table-column label="图标" align="center" width="80">
           <template #default="{ row }">
-            <i v-if="row.icon" :class="row.icon" style="font-size: 16px;" />
+            <svg-icon v-if="row.icon" :name="row.icon" :size="16" />
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -52,7 +52,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="颜色类名" prop="colorClass" show-overflow-tooltip width="140" />
+        <!-- <el-table-column label="颜色类名" prop="colorClass" show-overflow-tooltip width="140" /> -->
         <el-table-column label="操作" width="220" align="center" fixed="right">
           <template #default="{ row }">
             <el-button type="success" link @click="handleAdd(row)" v-permission="['sys:frontMenu:add']">
@@ -119,20 +119,26 @@
           </el-col>
 
           <el-col :span="24">
-            <el-form-item label="图标类名" prop="icon">
-              <el-input v-model="menuForm.icon" placeholder="Font Awesome 类名，如 fas fa-home">
+            <el-form-item label="图标" prop="icon">
+              <el-input v-model="menuForm.icon" placeholder="点击选择图标" readonly>
                 <template #prefix>
-                  <i v-if="menuForm.icon" :class="menuForm.icon" style="font-size: 14px;" />
+                  <svg-icon v-if="menuForm.icon" :name="menuForm.icon" :size="14" />
+                </template>
+                <template #append>
+                  <el-button @click="showIconSelect = true">选择图标</el-button>
                 </template>
               </el-input>
             </el-form-item>
           </el-col>
 
+          <!-- 颜色类名（已隐藏，改用 SVG 文件自身颜色） -->
+          <!--
           <el-col :span="24">
             <el-form-item label="颜色类名" prop="colorClass">
               <el-input v-model="menuForm.colorClass" placeholder="CSS 类名，如 home-link" />
             </el-form-item>
           </el-col>
+          -->
 
           <el-col :span="8">
             <el-form-item label="状态" prop="status">
@@ -170,12 +176,18 @@
         </div>
       </template>
     </el-dialog>
+    <!-- 前台图标选择器 -->
+    <front-icon-select
+      v-model="menuForm.icon"
+      v-model:visible="showIconSelect"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
+import FrontIconSelect from '@/components/FrontIconSelect/index.vue'
 import {
   getFrontMenuTreeApi,
   createFrontMenuApi,
@@ -187,6 +199,7 @@ const loading = ref(false)
 const dialogVisible = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const menuFormRef = ref<FormInstance>()
+const showIconSelect = ref(false)
 const submitLoading = ref(false)
 
 // 表单校验规则

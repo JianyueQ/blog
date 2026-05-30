@@ -26,7 +26,7 @@
     }
   })
   
-  const iconName = computed(()=>`#icon-${props.name}`);
+  const iconName = computed(()=>`#icon-${props.name.replace(/\//g, '-')}`);
   const mr = computed(()=>`#icon-${props.mr}`);
   const svgClass = computed(()=> {
     if (props.name) {

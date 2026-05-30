@@ -29,13 +29,13 @@ export default {
   name: 'TheFooter',
   data() {
     return {
-      startYear: 2021,
+      startYear: 2026,
       days: 0,
       hours: 0,
       minutes: 0,
       seconds: 0,
       timer: null,
-      startDate: new Date('2021-08-31')
+      startDate: new Date('2026-05-30')
     }
   },
   computed: {

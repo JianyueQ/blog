@@ -30,7 +30,7 @@
             }"
             @mouseenter="handleMouseEnter(item)"
           >
-            <i :class="item.icon"></i>
+            <svg-icon v-if="item.icon" :icon-class="item.icon" />
             {{ item.name }}
             <i v-if="item.children" class="fas fa-chevron-down dropdown-icon"></i>
           </router-link>
@@ -47,7 +47,7 @@
               :class="{ 'active': isChildActive(child) }"
               @click="handleDropdownItemClick(child)"
             >
-              <i :class="child.icon"></i>
+              <svg-icon v-if="child.icon" :icon-class="child.icon" />
               {{ child.name }}
             </a>
           </div>
@@ -108,6 +108,7 @@
 </template>
 
 <script>
+import { getThemeMode } from '@/utils/theme'
 
 export default {
   name: 'TheHeader',
@@ -122,31 +123,31 @@ export default {
         { 
           name: '首页', 
           path: '/', 
-          icon: 'fas fa-home',
+          icon: 'front/home',
           colorClass: 'home-link'
         },
         { 
           name: '文章归档', 
           path: '/archives', 
-          icon: 'fas fa-archive',
+          icon: 'front/archive',
           colorClass: 'archive-link',
           children: [
             { 
               name: '归档', 
               path: '/archive', 
-              icon: 'fas fa-clock',
+              icon: 'front/clock',
               colorClass: 'clock-link'
             },
             { 
               name: '分类', 
               path: '/categories', 
-              icon: 'fas fa-folder',
+              icon: 'front/folder',
               colorClass: 'category-link'
             },
             { 
               name: '标签', 
               path: '/tags', 
-              icon: 'fas fa-tags',
+              icon: 'front/tags',
               colorClass: 'tag-link'
             }
           ]
@@ -154,62 +155,62 @@ export default {
         { 
           name: '说说', 
           path: '/moments', 
-          icon: 'fas fa-comment-dots',
+          icon: 'front/comment',
           colorClass: 'talk-link'
         },
         { 
           name: '热搜', 
           path: '/hotSearch', 
-          icon: 'fas fa-fire',
+          icon: 'front/fire',
           colorClass: 'hot-link'
         },
         { 
           name: '资源', 
           path: '/resources', 
-          icon: 'fas fa-cloud-download-alt',
+          icon: 'front/cloud',
           colorClass: 'resource-link'
         },
         { 
           name: '相册', 
           path: '/photos', 
-          icon: 'fas fa-images',
+          icon: 'front/images',
           colorClass: 'photos-link'
         },
         { 
           name: '留言板', 
           path: '/messages', 
-          icon: 'fas fa-envelope',
+          icon: 'front/envelope',
           colorClass: 'message-link'
         },
         { 
           name: '友情链接', 
           path: '/friends', 
-          icon: 'fas fa-users',
+          icon: 'front/users',
           colorClass: 'friend-link'
         },
         { 
           name: '关于本站', 
           path: '/about', 
-          icon: 'fas fa-info-circle',
+          icon: 'front/info',
           colorClass: 'about-link',
           children: [
             { 
               name: '关于我', 
               path: '/about', 
-              icon: 'fas fa-user',
+              icon: 'front/user',
               colorClass: 'about-me-link'
             },
             { 
               name: '网站源码', 
               path: 'https://gitee.com/quequnlong', 
-              icon: 'fab fa-github',
+              icon: 'front/gitee',
               colorClass: 'github-link',
               external: true 
             },
             { 
               name: '后台管理', 
               path: import.meta.env.VITE_APP_ADMIN_URL || 'http://localhost:3000',
-              icon: 'fas fa-tv',
+              icon: 'front/tv',
               colorClass: 'admin-link',
               external: true 
             }
@@ -220,11 +221,28 @@ export default {
       showDropdown: false,
       showSearch: false,
       unreadCount: 0,
+      currentTheme: getThemeMode(), // 当前主题
     }
   },
   computed: {
     filteredMenuItems() {
-      return this.menuItems.map(item => ({
+      const isDark = this.currentTheme === 'dark'
+      return this.menuItems.map(item => {
+        const processItem = (obj) => {
+          const processed = { ...obj }
+          // 根据主题切换图标路径
+          if (processed.icon && processed.icon.startsWith('front/')) {
+            processed.icon = isDark 
+              ? processed.icon.replace('front/', 'front-dark/').replace(/(\/|^)([^\/]+)$/, '$1$2-dark')
+              : processed.icon.replace('front-dark/', 'front/').replace(/-dark(\.svg)?$/, '')
+          }
+          if (obj.children) {
+            processed.children = obj.children.map(processItem)
+          }
+          return processed
+        }
+        return processItem(item)
+      }).map(item => ({
         ...item,
         path: item.children ? item.children[0].path : item.path
       }))
@@ -311,6 +329,16 @@ export default {
     },
   },
   mounted() {
+    // 监听主题变化
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-theme') {
+          this.currentTheme = getThemeMode()
+        }
+      })
+    })
+    observer.observe(document.documentElement, { attributes: true })
+    
     // 添加滚动事件监听
     window.addEventListener('scroll', this.handleScroll)
     
@@ -480,30 +508,31 @@ export default {
       }
     }
 
-    &.home-link i { color: #4CAF50; }
-    &.archive-link i { color: #9C27B0; }
-    &.clock-link i { color: #00BCD4; }
-    &.category-link i { color: #FF9800; }
-    &.tag-link i { color: #E91E63; }
-    &.talk-link i { color: #2196F3; }
-    &.code-link i { color: #607D8B; }
-    &.hot-link i { color: #F44336; }
-    &.photos-link i { color: #9b36f4; }
-    &.message-link i { color: #009688; }
-    &.friend-link i { color: #3F51B5; }
-    &.about-link i { color: #795548; }
-    &.about-me-link i { color: #8BC34A; }
-    &.github-link i { color: #333333; }
-    &.changelog-link i { color: #673AB7; }
-    &.resource-link i { color: #009688; }
+    // 颜色规则（已注释 - 改用 SVG 文件自身颜色适配明暗模式）
+    // &.home-link svg { color: #4CAF50; }
+    // &.archive-link svg { color: #9C27B0; }
+    // &.clock-link svg { color: #00BCD4; }
+    // &.category-link svg { color: #FF9800; }
+    // &.tag-link svg { color: #E91E63; }
+    // &.talk-link svg { color: #2196F3; }
+    // &.code-link svg { color: #607D8B; }
+    // &.hot-link svg { color: #F44336; }
+    // &.photos-link svg { color: #9b36f4; }
+    // &.message-link svg { color: #009688; }
+    // &.friend-link svg { color: #3F51B5; }
+    // &.about-link svg { color: #795548; }
+    // &.about-me-link svg { color: #8BC34A; }
+    // &.github-link svg { color: #333333; }
+    // &.changelog-link svg { color: #673AB7; }
+    // &.resource-link svg { color: #009688; }
 
     &:hover {
-      i {
+      i, svg {
         transform: scale(1.1);
       }
     }
 
-    i {
+    i, svg {
       transition: transform 0.3s ease;
       font-size: 1.2em;
     }
@@ -724,7 +753,7 @@ export default {
         transition: all 0.2s;
         cursor: pointer;
 
-        i {
+        i, svg {
           font-size: 16px;
           opacity: 0.8;
         }
@@ -733,7 +762,7 @@ export default {
           background: var(--hover-bg);
           color: $primary;
 
-          i {
+          i, svg {
             opacity: 1;
           }
         }
@@ -874,7 +903,7 @@ export default {
     transition: all 0.3s ease;
     white-space: nowrap;
     font-size: 0.9em;
-    i {
+    i, svg {
       width: 16px;
       text-align: center;
       font-size: 0.9em;
@@ -886,7 +915,7 @@ export default {
       color: $primary;
       background: var(--hover-bg);
       
-      i {
+      i, svg {
         color: $primary;
       }
     }
@@ -949,25 +978,27 @@ export default {
   }
 }
 
-/* 深色模式下的图标颜色整 */
+/* 深色模式下的图标颜色规则（已注释 - 改用 SVG 文件自身颜色适配明暗模式） */
+/*
 :root[data-theme='dark'] {
   .nav-link {
-    &.home-link i { color: #81C784; }
-    &.archive-link i { color: #CE93D8; }
-    &.clock-link i { color: #4DD0E1; }
-    &.category-link i { color: #FFB74D; }
-    &.tag-link i { color: #F06292; }
-    &.talk-link i { color: #64B5F6; }
-    &.code-link i { color: #90A4AE; }
-    &.hot-link i { color: #EF5350; }
-    &.message-link i { color: #4DB6AC; }
-    &.friend-link i { color: #7986CB; }
-    &.about-link i { color: #A1887F; }
-    &.about-me-link i { color: #AED581; }
-    &.github-link i { color: #FFFFFF; }
-    &.changelog-link i { color: #9575CD; }
+    &.home-link svg { color: #81C784; }
+    &.archive-link svg { color: #CE93D8; }
+    &.clock-link svg { color: #4DD0E1; }
+    &.category-link svg { color: #FFB74D; }
+    &.tag-link svg { color: #F06292; }
+    &.talk-link svg { color: #64B5F6; }
+    &.code-link svg { color: #90A4AE; }
+    &.hot-link svg { color: #EF5350; }
+    &.message-link svg { color: #4DB6AC; }
+    &.friend-link svg { color: #7986CB; }
+    &.about-link svg { color: #A1887F; }
+    &.about-me-link svg { color: #AED581; }
+    &.github-link svg { color: #FFFFFF; }
+    &.changelog-link svg { color: #9575CD; }
   }
 }
+*/
 
 /* 添加图标悬浮动画 */
 @keyframes iconFloat {
@@ -982,7 +1013,8 @@ export default {
   }
 }
 
-.nav-link:hover i {
+.nav-link:hover i,
+.nav-link:hover svg {
   animation: iconFloat 0.6s ease-in-out;
 }
 

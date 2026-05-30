@@ -7,7 +7,7 @@ const clearHeightWidth = /(width|height)="([^>+].*?)"/g
 const hasViewBox = /(viewBox="[^>+].*?")/g
 const clearReturn = /(\r)|(\n)/g
 
-function findSvgFile(dir: string): string[] {
+function findSvgFile(dir: string, basePath: string = dir): string[] {
   const svgRes: string[] = []
   const dirents = readdirSync(dir, {
     withFileTypes: true
@@ -15,8 +15,16 @@ function findSvgFile(dir: string): string[] {
   
   for (const dirent of dirents) {
     if (dirent.isDirectory()) {
-      svgRes.push(...findSvgFile(dir + dirent.name + "/"))
+      svgRes.push(...findSvgFile(dir + dirent.name + "/", basePath))
     } else {
+      // 计算子目录相对路径，作为 symbolId 前缀的一部分
+      const relativePath = dir.substring(basePath.length)
+      const subPrefix = relativePath.replace(/\//g, "-").replace(/-$/, "")
+      const namePart = dirent.name.replace(".svg", "")
+      const symbolId = subPrefix
+        ? `${idPerfix}-${subPrefix}-${namePart}`
+        : `${idPerfix}-${namePart}`
+
       const svg = readFileSync(dir + dirent.name)
         .toString()
         .replace(clearReturn, "")
@@ -34,7 +42,7 @@ function findSvgFile(dir: string): string[] {
           if (!hasViewBox.test($2)) {
             content += `viewBox="0 0 ${width} ${height}"`
           }
-          return `<symbol id="${idPerfix}-${dirent.name.replace(".svg", "")}" ${content}>`
+          return `<symbol id="${symbolId}" ${content}>`
         })
         .replace("</svg>", "</symbol>")
       svgRes.push(svg)
