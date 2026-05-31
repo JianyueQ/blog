@@ -62,7 +62,7 @@ public class ConfigCacheService {
      */
     public String getFrontBaseUrl() {
         String url = getConfigValue("front_base_url");
-        return url != null ? url : "https://gp.jianyue.cloud";
+        return url != null ? url : "https://blog.jianyue.cloud";
     }
 
     /**
