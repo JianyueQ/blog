@@ -16,7 +16,7 @@ spring:
       database: 8
       timeout: 3000
       port: 6379
-      password: 25fX1QKfuX6XgN21MRPlHMvvby4Upen5UwvaGtxS
+      password: 25fX1QKfuX6XgN21MRPlHMvvby4Upen5UwvaGtxS+dU=
 
 
 #==============================knife4j配置==============================

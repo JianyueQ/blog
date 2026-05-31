@@ -9,14 +9,14 @@
 </template>
 
 <script setup lang="ts">
+import logoUrl from '@/assets/logo.png'
+
 defineProps({
   size: {
     type: [Number, String],
     default: 32
   },
 })
-
-const logoUrl = import.meta.env.VITE_APP_LOGO
 </script>
 
 <style scoped>

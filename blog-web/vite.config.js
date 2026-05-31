@@ -3,10 +3,12 @@ import vue2 from '@vitejs/plugin-vue2'
 import path from 'path'
 import { loadEnv } from 'vite'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
+import { compression } from 'vite-plugin-compression2'
 
 export default defineConfig(({ command, mode }) => {
 
     const env = loadEnv(mode, process.cwd());
+    const isBuild = command === 'build';
     return {
         server: {
             // 允许IP访问
@@ -34,6 +36,12 @@ export default defineConfig(({ command, mode }) => {
             // 指定symbolId格式
             symbolId: 'icon-[dir]-[name]',
           }),
+          // 生产环境开启 gzip 压缩
+          isBuild && compression({
+            include: /\.(js|css|html|json|svg)$/i,
+            threshold: 1024,
+            deleteOriginalAssets: false,
+          }),
         ],
         resolve: {
           alias: {
@@ -52,7 +60,34 @@ export default defineConfig(({ command, mode }) => {
                 `
               }
             }
-        }
+        },
+        // 构建优化
+        build: {
+          // 生产环境关闭 sourcemap
+          sourcemap: false,
+          // 使用 terser 压缩，去除 console 和 debugger
+          minify: 'terser',
+          terserOptions: {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+          },
+          // 代码分割策略
+          rollupOptions: {
+            output: {
+              manualChunks: {
+                'vue-vendor': ['vue', 'vue-router', 'vuex'],
+                'element-ui': ['element-ui'],
+                'highlight': ['highlight.js'],
+                'editor': ['mavon-editor', 'marked'],
+                'animation': ['gsap', 'animate.css'],
+              },
+            },
+          },
+          // chunk 大小警告
+          chunkSizeWarningLimit: 1000,
+        },
     }
   
 })

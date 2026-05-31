@@ -29,22 +29,22 @@ public class Constants {
 
     public static final Long XIAO_ASSISTANT_ID  = 2L;
 
-    public static final String LOGIN_URL = "https://gp.jianyue.cloud/";
-    public static final String LOGIN_SUCCESS_URL = "https://gp.jianyue.cloud/?token=";
+    public static final String LOGIN_URL = "https://blog.jianyue.cloud/";
+    public static final String LOGIN_SUCCESS_URL = "https://blog.jianyue.cloud/?token=";
 
     /** 后台登录页地址 */
-    public static final String ADMIN_LOGIN_URL = "https://gp.jianyue.cloud/admin/login";
+    public static final String ADMIN_LOGIN_URL = "https://blog.jianyue.cloud/admin/login";
     /** 后台登录成功重定向地址 */
-    public static final String ADMIN_LOGIN_SUCCESS_URL = "https://gp.jianyue.cloud/admin/?token=";
+    public static final String ADMIN_LOGIN_SUCCESS_URL = "https://blog.jianyue.cloud/admin/?token=";
     /** 后台绑定成功重定向地址 */
-    public static final String ADMIN_BIND_SUCCESS_URL = "https://gp.jianyue.cloud/admin/bindCallback?result=success";
+    public static final String ADMIN_BIND_SUCCESS_URL = "https://blog.jianyue.cloud/admin/bindCallback?result=success";
     /** 后台绑定失败重定向地址 */
-    public static final String ADMIN_BIND_FAIL_URL = "https://gp.jianyue.cloud/admin/bindCallback?result=fail&msg=";
+    public static final String ADMIN_BIND_FAIL_URL = "https://blog.jianyue.cloud/admin/bindCallback?result=fail&msg=";
 
     /** 前台绑定成功重定向地址 */
-    public static final String FRONT_BIND_SUCCESS_URL = "https://gp.jianyue.cloud/bindCallback?result=success";
+    public static final String FRONT_BIND_SUCCESS_URL = "https://blog.jianyue.cloud/bindCallback?result=success";
     /** 前台绑定失败重定向地址 */
-    public static final String FRONT_BIND_FAIL_URL = "https://gp.jianyue.cloud/bindCallback?result=fail&msg=";
+    public static final String FRONT_BIND_FAIL_URL = "https://blog.jianyue.cloud/bindCallback?result=fail&msg=";
 
     /** 第三方登录配置缓存名 */
     public static final String CACHE_THIRD_PARTY_CONFIG = "third_party_config";
