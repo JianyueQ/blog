@@ -2,8 +2,10 @@ package com.mojian.service.impl;
 
 import java.util.List;
 
+import com.mojian.common.RedisConstants;
 import com.mojian.common.ResultCode;
 import com.mojian.exception.ServiceException;
+import com.mojian.utils.RedisUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import com.mojian.mapper.SysTagMapper;
@@ -23,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SysTagServiceImpl extends ServiceImpl<SysTagMapper, SysTag> implements SysTagService {
+
+    private final RedisUtil redisUtil;
 
     /**
      * 查询标签表分页列表
@@ -52,7 +56,9 @@ public class SysTagServiceImpl extends ServiceImpl<SysTagMapper, SysTag> impleme
         if (count > 0) {
             throw new ServiceException(ResultCode.TAG_IS_EXIST.desc);
         }
-        return save(sysTag);
+        boolean result = save(sysTag);
+        redisUtil.delete(RedisConstants.TAG_LIST_KEY);
+        return result;
     }
 
     /**
@@ -64,7 +70,9 @@ public class SysTagServiceImpl extends ServiceImpl<SysTagMapper, SysTag> impleme
         if (sysTag1 != null && !sysTag1.getId().equals(sysTag.getId())) {
             throw new ServiceException(ResultCode.TAG_IS_EXIST.desc);
         }
-        return updateById(sysTag);
+        boolean result = updateById(sysTag);
+        redisUtil.delete(RedisConstants.TAG_LIST_KEY);
+        return result;
     }
 
     /**
@@ -73,6 +81,8 @@ public class SysTagServiceImpl extends ServiceImpl<SysTagMapper, SysTag> impleme
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByIds(List<Integer> ids) {
-        return removeByIds(ids);
+        boolean result = removeByIds(ids);
+        redisUtil.delete(RedisConstants.TAG_LIST_KEY);
+        return result;
     }
 }

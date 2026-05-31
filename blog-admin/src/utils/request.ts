@@ -7,7 +7,7 @@ let isRelogin = { show: false }; // 是否显示弹框
 
 const service = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API,
-  timeout: 30000,
+  timeout: import.meta.env.VITE_APP_TIMEOUT ? parseInt(import.meta.env.VITE_APP_TIMEOUT) : 10000,
   headers: { "Content-Type": "application/json;charset=utf-8" },
 })
 

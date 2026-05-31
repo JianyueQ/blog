@@ -1,7 +1,6 @@
 package com.mojian.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mojian.entity.SysNotifications;
@@ -13,8 +12,6 @@ import com.mojian.vo.notifications.NotificationsListVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,10 +59,11 @@ public class NotificationsServiceImpl implements NotificationsService {
 
     @Override
     public Boolean getMyIsUnread() {
-        List<SysNotifications> sysNotifications = baseMapper.selectList(new LambdaQueryWrapper<SysNotifications>()
+        // 使用selectCount替代selectList，避免查出全量记录只为判断存在
+        long count = baseMapper.selectCount(new LambdaQueryWrapper<SysNotifications>()
                 .eq(SysNotifications::getUserId, StpUtil.getLoginIdAsLong())
                 .eq(SysNotifications::getIsRead, 0));
-        return CollectionUtil.isNotEmpty(sysNotifications);
+        return count > 0;
     }
 
 }

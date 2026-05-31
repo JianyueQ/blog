@@ -41,6 +41,20 @@
         where sat.article_id = #{id}
     </select>
 
+    <select id="getTagsByArticleIds" resultType="com.mojian.vo.tag.TagListVo">
+        SELECT
+            sat.article_id AS articleId,
+            tag.id,
+            tag.name
+        FROM
+            sys_tag tag
+            INNER JOIN sys_article_tag sat ON tag.id = sat.tag_id
+        WHERE sat.article_id IN
+        <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">
+            #{articleId}
+        </foreach>
+    </select>
+
     <delete id="deleteArticleTagsByArticleIds">
         DELETE FROM sys_article_tag WHERE article_id IN
         <foreach item="id" index="index" collection="list"

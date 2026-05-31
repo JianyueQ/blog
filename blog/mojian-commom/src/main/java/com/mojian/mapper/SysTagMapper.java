@@ -20,6 +20,8 @@ public interface SysTagMapper extends BaseMapper<SysTag> {
 
     List<TagListVo> getTagByArticleId(Long id);
 
+    List<TagListVo> getTagsByArticleIds(@Param("articleIds") List<Long> articleIds);
+
 
     void deleteArticleTagsByArticleIds(List<Long> ids);
 

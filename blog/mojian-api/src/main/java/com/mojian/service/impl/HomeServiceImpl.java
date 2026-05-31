@@ -44,18 +44,26 @@ public class HomeServiceImpl implements HomeService {
             LambdaQueryWrapper<SysWebConfig> wrapper = new LambdaQueryWrapper<>();
             wrapper.last("limit 1");
             sysWebConfig = sysWebConfigMapper.selectOne(wrapper);
-        }else {
+            // 查询后写回缓存，过期时间7天
+            if (sysWebConfig != null) {
+                redisUtil.set(RedisConstants.WEB_CONFIG_KEY,
+                        JSONObject.toJSONString(sysWebConfig),
+                        RedisConstants.WEEK_EXPIRE, TimeUnit.SECONDS);
+            }
+        } else {
             sysWebConfig = JSONObject.parseObject(value.toString(), SysWebConfig.class);
         }
 
-        //获取浏览量和访问量
+        //获取浏览量和访问量（直接get判空，避免hasKey+get两次Redis往返）
         long blogViewsCount = 0;
         long visitorCount = 0;
-        if (redisUtil.hasKey(RedisConstants.BLOG_VIEWS_COUNT)) {
-            blogViewsCount = Long.parseLong(redisUtil.get(RedisConstants.BLOG_VIEWS_COUNT).toString());
+        Object viewsObj = redisUtil.get(RedisConstants.BLOG_VIEWS_COUNT);
+        if (viewsObj != null) {
+            blogViewsCount = Long.parseLong(viewsObj.toString());
         }
-        if (redisUtil.hasKey(RedisConstants.UNIQUE_VISITOR_COUNT)) {
-            visitorCount = Long.parseLong(redisUtil.get(RedisConstants.UNIQUE_VISITOR_COUNT).toString());
+        Object visitorObj = redisUtil.get(RedisConstants.UNIQUE_VISITOR_COUNT);
+        if (visitorObj != null) {
+            visitorCount = Long.parseLong(visitorObj.toString());
         }
 
         return Result.success(sysWebConfig).putExtra("blogViewsCount", blogViewsCount).putExtra("visitorCount", visitorCount);
@@ -63,12 +71,23 @@ public class HomeServiceImpl implements HomeService {
 
     @Override
     public JSONObject getHotSearch(String type) {
+        // 优先从缓存获取（热搜数据缓存30分钟，避免每次请求都调外部HTTP）
+        String cacheKey = RedisConstants.HOT_SEARCH_KEY + type;
+        Object cached = redisUtil.get(cacheKey);
+        if (cached != null) {
+            return JSONObject.parseObject(cached.toString());
+        }
         HashMap<String, Object> paramMap = new HashMap<>();
         paramMap.put("access-key", "f94be500c45148bc185be24a38c04ad3");
         paramMap.put("secret-key", "27563ca627d5db0d57e831ca4de0f75f");
         String url = "https://www.coderutil.com/api/resou/v1/" + type;
-        String result= HttpUtil.get(url, paramMap);
-        return com.alibaba.fastjson2.JSONObject.parseObject(result);
+        String result = HttpUtil.get(url, paramMap);
+        JSONObject jsonResult = JSONObject.parseObject(result);
+        // 缓存30分钟
+        if (jsonResult != null) {
+            redisUtil.set(cacheKey, result, RedisConstants.HALF_HOUR_EXPIRE, TimeUnit.SECONDS);
+        }
+        return jsonResult;
     }
 
     @Override

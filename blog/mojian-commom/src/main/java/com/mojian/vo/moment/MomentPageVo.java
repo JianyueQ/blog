@@ -17,4 +17,9 @@ public class MomentPageVo extends SysMoment {
 
     private String avatar;
 
+    /**
+     * 渲染后的 HTML 内容（用于前端展示）
+     */
+    private String htmlContent;
+
 }

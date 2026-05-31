@@ -8,15 +8,23 @@ import com.mojian.entity.SysMenu;
 import com.mojian.enums.MenuTypeEnum;
 import com.mojian.mapper.SysMenuMapper;
 import com.mojian.service.SysMenuService;
+import com.mojian.utils.RedisUtil;
 import com.mojian.vo.menu.RouterVO;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> implements SysMenuService {
+
+    private final RedisUtil redisUtil;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public List<SysMenu> getMenuTree() {
@@ -43,6 +51,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             menu.setComponent("Layout");
         }
         save(menu);
+        // 新增菜单也需要清除缓存
+        clearMenuCache();
     }
 
     @Override
@@ -51,6 +61,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             menu.setComponent("Layout");
         }
         updateById(menu);
+        // 清除所有用户的菜单缓存（使用 keys 命令查找并删除）
+        clearMenuCache();
     }
 
     @Override
@@ -60,10 +72,29 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             throw new RuntimeException("存在子菜单，不能删除");
         }
         removeById(id);
+        // 清除所有用户的菜单缓存
+        clearMenuCache();
+    }
+    
+    /**
+     * 清除所有用户的菜单缓存
+     */
+    private void clearMenuCache() {
+        Set<String> keys = redisTemplate.keys("menu:user:*");
+        if (keys != null && !keys.isEmpty()) {
+            redisUtil.delete(keys);
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<RouterVO> getCurrentUserMenu() {
+        // 从 Redis 缓存获取菜单（缓存 30 分钟）
+        String cacheKey = "menu:user:" + StpUtil.getLoginIdAsLong();
+        Object cached = redisUtil.get(cacheKey);
+        if (cached instanceof List) {
+            return (List<RouterVO>) cached;
+        }
 
         List<SysMenu> menus;
         if (StpUtil.hasRole(Constants.ADMIN)) {
@@ -73,7 +104,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
             menus = baseMapper.getMenusByUserId(StpUtil.getLoginIdAsInt(),MenuTypeEnum.BUTTON.getCode());
         }
 
-        return this.buildRouterTree(menus);
+        List<RouterVO> result = this.buildRouterTree(menus);
+        
+        // 缓存到 Redis（30 分钟）
+        redisUtil.set(cacheKey, result, 30, TimeUnit.MINUTES);
+        
+        return result;
     }
 
 

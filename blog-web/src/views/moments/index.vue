@@ -24,7 +24,7 @@
             </span>
           </div>
           <div class="moment-content-wrapper">
-            <div class="moment-content markdown-body" v-html="moment.renderedContent || moment.content"></div>
+            <div class="moment-content markdown-body" v-html="moment.htmlContent || moment.content"></div>
             <div class="moment-images" v-if="moment.images?.length">
               <img v-for="(img, index) in moment.images" :key="img" v-lazy="img"
                 @click="previewImage(moment.images, index)" />
@@ -47,8 +47,6 @@
 <script>
 import { formatTime } from '@/utils/time'
 import { getMoments } from '@/api/moments'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
 
 export default {
   name: 'Moments',
@@ -81,11 +79,7 @@ export default {
         this.total = res.data.total
         this.moments.forEach(moment => {
           moment.images = this.parseImages(moment.images)
-          // 渲染 Markdown 内容
-          if (moment.content) {
-            const html = marked.parse(moment.content)
-            moment.renderedContent = DOMPurify.sanitize(html)
-          }
+          // 后端已返回 HTML，前端无需再次渲染
         })
       } catch (error) {
         console.error('获取说说列表失败:', error)

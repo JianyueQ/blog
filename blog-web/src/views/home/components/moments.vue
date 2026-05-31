@@ -8,7 +8,7 @@
         </div>
         <transition name="fade" mode="out-in">
           <div class="moment-item" :key="currentIndex">
-            <span class="moment-text" @click="goToMoments" v-html="moments[currentIndex].content" />
+            <span class="moment-text" @click="goToMoments">{{ getContentSummary(moments[currentIndex].htmlContent || moments[currentIndex].content) }}</span>
           </div>
         </transition>
       </div>
@@ -40,9 +40,20 @@ export default {
     }
   },
   methods: {
+    // 获取内容摘要（从 HTML 中提取纯文本，截取前 50 个字符）
+    getContentSummary(html) {
+      if (!html) return ''
+      // 移除所有 HTML 标签
+      const text = html.replace(/<[^>]+>/g, '')
+      // 去除多余空白
+      const cleanText = text.replace(/\s+/g, ' ').trim()
+      // 截取前 50 个字符
+      return cleanText.length > 50 ? cleanText.substring(0, 50) + '...' : cleanText
+    },
     getMomentsList() {
       getMoments({ pageSize: 5, pageNum: 1 }).then(res => {
         if (res.data && res.data.records) {
+          // 后端已返回 HTML，直接使用
           this.moments = res.data.records
           this.startRotation()
         }

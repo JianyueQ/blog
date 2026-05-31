@@ -8,15 +8,21 @@ import com.mojian.service.SysRoleService;
 import com.mojian.utils.PageUtil;
 import com.mojian.entity.SysRole;
 import com.mojian.mapper.SysRoleMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Service
+@RequiredArgsConstructor
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements SysRoleService {
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public IPage<SysRole> listRoles(String name) {
@@ -55,6 +61,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     public void delete(List<Integer> ids) {
         removeBatchByIds(ids);
         baseMapper.deleteMenuByRoleId(ids);
+        clearMenuCache();
     }
 
 
@@ -70,7 +77,19 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         if (!menuIds.isEmpty()) {
             baseMapper.insertRoleMenus(id, menuIds);
         }
+        // 角色菜单关系变更，清除所有用户的菜单缓存
+        clearMenuCache();
         return Boolean.TRUE;
+    }
+
+    /**
+     * 清除所有用户的菜单缓存
+     */
+    private void clearMenuCache() {
+        Set<String> keys = redisTemplate.keys("menu:user:*");
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 
     /**

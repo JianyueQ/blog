@@ -186,6 +186,13 @@
             <version>${hutool.version}</version>
         </dependency>
 
+        <!-- Markdown to HTML converter -->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>0.64.8</version>
+        </dependency>
+
     </dependencies>
 
     <build>

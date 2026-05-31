@@ -1,5 +1,6 @@
 package com.mojian.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mojian.service.MessageService;
 import com.mojian.entity.SysMessage;
 import com.mojian.mapper.SysMessageMapper;
@@ -18,7 +19,10 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<SysMessage> getMessageList() {
-        return messageMapper.selectList(null);
+        // 添加LIMIT限制，避免全表加载
+        return messageMapper.selectList(new LambdaQueryWrapper<SysMessage>()
+                .orderByDesc(SysMessage::getCreateTime)
+                .last("LIMIT 200"));
     }
 
     @Override

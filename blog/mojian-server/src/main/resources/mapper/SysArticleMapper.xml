@@ -148,6 +148,13 @@
         where status = 1 and DATE_FORMAT( create_time, '%Y' ) = #{year} order by create_time desc
     </select>
 
+    <select id="getAllPublishedArticlesForArchive" resultType="com.mojian.vo.article.ArticleListVo">
+        SELECT id, title, create_time
+        FROM sys_article
+        WHERE status = 1
+        ORDER BY create_time DESC
+    </select>
+
     <select id="selectPageList" resultMap="articleResultMap">
         SELECT
             a.id,

@@ -7,6 +7,9 @@ import lombok.Data;
 @Schema(name = "标签列表视图对象")
 public class TagListVo {
 
+    @Schema(description = "文章ID（批量查询时使用）")
+    private Long articleId;
+
     @Schema(description = "主键")
     private Integer id;
 

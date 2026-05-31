@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.mojian.entity.SysMoment;
 import com.mojian.service.SysMomentService;
 import com.mojian.common.Result;
+import com.mojian.vo.moment.MomentPageVo;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +26,7 @@ public class SysMomentController {
 
     @GetMapping("/list")
     @Operation(summary = "获取说说列表")
-    public Result<IPage<SysMoment>> list(SysMoment sysMoment) {
+    public Result<IPage<MomentPageVo>> list(SysMoment sysMoment) {
         return Result.success(sysMomentService.selectPage(sysMoment));
     }
 

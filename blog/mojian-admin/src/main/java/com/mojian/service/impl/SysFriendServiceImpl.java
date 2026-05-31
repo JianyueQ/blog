@@ -3,10 +3,12 @@ package com.mojian.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mojian.common.RedisConstants;
 import com.mojian.entity.SysFriend;
 import com.mojian.mapper.SysFriendMapper;
 import com.mojian.service.SysFriendService;
 import com.mojian.utils.PageUtil;
+import com.mojian.utils.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SysFriendServiceImpl extends ServiceImpl<SysFriendMapper, SysFriend> implements SysFriendService {
+
+    private final RedisUtil redisUtil;
 
     @Override
     public IPage<SysFriend> selectPage(SysFriend sysFriend) {
@@ -28,6 +32,8 @@ public class SysFriendServiceImpl extends ServiceImpl<SysFriendMapper, SysFriend
      */
     @Override
     public boolean update(SysFriend sysFriend) {
-        return updateById(sysFriend);
+        boolean result = updateById(sysFriend);
+        redisUtil.delete(RedisConstants.FRIEND_LIST_KEY);
+        return result;
     }
 }

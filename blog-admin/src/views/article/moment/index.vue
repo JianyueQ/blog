@@ -16,20 +16,24 @@
       <!-- 数据表格 -->
       <el-table v-loading="loading" :data="momentList" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="内容" align="center" prop="content" show-overflow-tooltip />
+        <el-table-column label="内容" align="center" prop="content" show-overflow-tooltip>
+          <template #default="scope">
+            <div class="moment-content">{{ getContentSummary(scope.row.htmlContent || scope.row.content) }}</div>
+          </template>
+        </el-table-column>
         <el-table-column label="图片" align="center" prop="images" width="200">
           <template #default="scope">
-            <div v-if="parseImage(scope.row.images).length > 0" style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <div v-if="parseImage(scope.row.images).length > 0 && parseImage(scope.row.images)[0]" style="display: flex; gap: 4px; flex-wrap: wrap;">
               <el-image 
-                v-for="(item, index) in parseImage(scope.row.images).slice(0, 3)" 
+                v-for="(item, index) in parseImage(scope.row.images).filter(img => img).slice(0, 3)" 
                 :key="index"
                 :src="item" 
                 style="width: 50px; height: 50px; border-radius: 4px;" 
                 fit="cover"
-                :preview-src-list="parseImage(scope.row.images)"
+                :preview-src-list="parseImage(scope.row.images).filter(img => img)"
                 :initial-index="index"
               />
-              <span v-if="parseImage(scope.row.images).length > 3" style="font-size: 12px; color: #909399;">+{{ parseImage(scope.row.images).length - 3 }}</span>
+              <span v-if="parseImage(scope.row.images).filter(img => img).length > 3" style="font-size: 12px; color: #909399;">+{{ parseImage(scope.row.images).filter(img => img).length - 3 }}</span>
             </div>
             <span v-else style="color: #909399;">无</span>
           </template>
@@ -166,7 +170,19 @@ const rules = reactive<FormRules>({
 })
 
 const parseImage = (images: string) => {
-  return images.split(',')
+  if (!images) return []
+  return images.split(',').filter((img: string) => img && img.trim() !== '')
+}
+
+// 获取内容摘要（从 HTML 中提取纯文本，截取前 100 个字符）
+const getContentSummary = (html: string) => {
+  if (!html) return ''
+  // 移除所有 HTML 标签
+  const text = html.replace(/<[^>]+>/g, '')
+  // 去除多余空白
+  const cleanText = text.replace(/\s+/g, ' ').trim()
+  // 截取前 100 个字符
+  return cleanText.length > 100 ? cleanText.substring(0, 100) + '...' : cleanText
 }
 
 // 获取标签列表
@@ -238,7 +254,12 @@ const handleUpdate = (row: any) => {
   dialog.title = '修改说说'
   dialog.visible = true
   Object.assign(momentForm, row)
-  momentForm.images = momentForm.images.split(',')
+  // 修复空图片问题：只有当 images 有值时才分割
+  if (momentForm.images) {
+    momentForm.images = momentForm.images.split(',').filter((img: string) => img && img.trim() !== '')
+  } else {
+    momentForm.images = []
+  }
 }
 
 // 富文本编辑器引用
@@ -312,3 +333,108 @@ onMounted(() => {
   getList()
 })
 </script>
+
+<style lang="scss" scoped>
+// Markdown 渲染内容样式
+.moment-content {
+  :deep(p) {
+    margin: 0;
+    line-height: 1.6;
+  }
+  
+  :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+    margin: 8px 0;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  
+  :deep(h1) { font-size: 1.6em; }
+  :deep(h2) { font-size: 1.4em; }
+  :deep(h3) { font-size: 1.2em; }
+  
+  :deep(ul), :deep(ol) {
+    margin: 4px 0;
+    padding-left: 20px;
+  }
+  
+  :deep(li) {
+    margin: 2px 0;
+  }
+  
+  :deep(blockquote) {
+    margin: 8px 0;
+    padding: 4px 12px;
+    border-left: 3px solid #409eff;
+    background: #f5f7fa;
+    color: #606266;
+  }
+  
+  :deep(code) {
+    padding: 2px 4px;
+    background: #f5f7fa;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+  }
+  
+  :deep(pre) {
+    margin: 8px 0;
+    padding: 8px;
+    background: #f5f7fa;
+    border-radius: 4px;
+    overflow-x: auto;
+    
+    code {
+      padding: 0;
+      background: none;
+    }
+  }
+  
+  :deep(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 8px 0;
+  }
+  
+  :deep(a) {
+    color: #409eff;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  :deep(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    
+    th, td {
+      border: 1px solid #dcdfe6;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    
+    th {
+      background: #f5f7fa;
+      font-weight: 600;
+    }
+  }
+  
+  :deep(hr) {
+    border: none;
+    border-top: 1px solid #dcdfe6;
+    margin: 12px 0;
+  }
+  
+  :deep(strong) {
+    font-weight: 600;
+  }
+  
+  :deep(em) {
+    font-style: italic;
+  }
+}
+</style>

@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mojian.common.RedisConstants;
 import com.mojian.common.ResultCode;
 import com.mojian.entity.SysCategory;
 import com.mojian.exception.ServiceException;
 import com.mojian.mapper.SysCategoryMapper;
 import com.mojian.service.SysCategoryService;
 import com.mojian.utils.PageUtil;
+import com.mojian.utils.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SysCategoryServiceImpl extends ServiceImpl<SysCategoryMapper, SysCategory> implements SysCategoryService {
+
+    private final RedisUtil redisUtil;
 
     /**
      * 查询分类表分页列表
@@ -52,7 +56,9 @@ public class SysCategoryServiceImpl extends ServiceImpl<SysCategoryMapper, SysCa
         if (count > 0) {
             throw new ServiceException(ResultCode.CATEGORY_IS_EXIST.desc);
         }
-        return save(sysCategory);
+        boolean result = save(sysCategory);
+        clearCategoryCaches();
+        return result;
     }
 
     /**
@@ -64,7 +70,9 @@ public class SysCategoryServiceImpl extends ServiceImpl<SysCategoryMapper, SysCa
         if (sysCategory1 != null && !sysCategory1.getId().equals(sysCategory.getId())) {
             throw new ServiceException(ResultCode.CATEGORY_IS_EXIST.desc);
         }
-        return updateById(sysCategory);
+        boolean result = updateById(sysCategory);
+        clearCategoryCaches();
+        return result;
     }
 
     /**
@@ -73,6 +81,13 @@ public class SysCategoryServiceImpl extends ServiceImpl<SysCategoryMapper, SysCa
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByIds(List<Integer> ids) {
-        return removeByIds(ids);
+        boolean result = removeByIds(ids);
+        clearCategoryCaches();
+        return result;
+    }
+
+    private void clearCategoryCaches() {
+        redisUtil.delete(RedisConstants.CATEGORY_LIST_KEY);
+        redisUtil.delete(RedisConstants.CATEGORY_ARTICLE_COUNT_KEY);
     }
 }

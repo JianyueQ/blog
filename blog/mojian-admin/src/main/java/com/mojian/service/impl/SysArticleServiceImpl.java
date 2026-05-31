@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mojian.common.Constants;
+import com.mojian.common.RedisConstants;
 import com.mojian.common.ResultCode;
 import com.mojian.dto.article.ArticleQueryDto;
 import com.mojian.entity.SysArticle;
@@ -19,6 +20,7 @@ import com.mojian.mapper.SysTagMapper;
 import com.mojian.service.SysArticleService;
 import com.mojian.utils.AiUtil;
 import com.mojian.utils.PageUtil;
+import com.mojian.utils.RedisUtil;
 import com.mojian.vo.article.ArticleListVo;
 import com.mojian.vo.article.SysArticleDetailVo;
 import com.vladsch.flexmark.html2md.converter.FlexmarkHtmlConverter;
@@ -45,6 +47,7 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
 
     private final AiUtil aiUtil;
     private final SysCategoryMapper sysCategoryMapper;
+    private final RedisUtil redisUtil;
 
     @Override
     public IPage<ArticleListVo> selectPage(ArticleQueryDto articleQueryDto) {
@@ -88,6 +91,8 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
                 baseMapper.updateById(obj);
             }
         });
+        // 清除分类文章数缓存
+        redisUtil.delete(RedisConstants.CATEGORY_ARTICLE_COUNT_KEY);
         return true;
     }
 
@@ -115,6 +120,8 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
         //先删除标签在新增标签
         sysTagMapper.deleteArticleTagsByArticleIds(Collections.singletonList(obj.getId()));
         addTags(sysArticle, obj);
+        // 清除分类文章数缓存
+        redisUtil.delete(RedisConstants.CATEGORY_ARTICLE_COUNT_KEY);
         return true;
     }
 
@@ -134,6 +141,8 @@ public class SysArticleServiceImpl extends ServiceImpl<SysArticleMapper, SysArti
 
         baseMapper.deleteBatchIds(ids);
         sysTagMapper.deleteArticleTagsByArticleIds(ids);
+        // 清除分类文章数缓存
+        redisUtil.delete(RedisConstants.CATEGORY_ARTICLE_COUNT_KEY);
         return true;
     }
 

@@ -94,5 +94,11 @@ public interface SysArticleMapper extends BaseMapper<SysArticle> {
 
     IPage<ArticleListVo> selectMyArticle(@Param("page")Page<Object> page,@Param("article") SysArticle article);
 
+    /**
+     * 获取文章归档（全部已发布文章，仅查id/title/createTime，用于内存分组）
+     * @return
+     */
+    List<ArticleListVo> getAllPublishedArticlesForArchive();
+
     void updateBatchQuantity(@Param("articles") List<SysArticle> articles);
 }

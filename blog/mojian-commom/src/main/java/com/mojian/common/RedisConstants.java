@@ -152,4 +152,29 @@ public class RedisConstants {
      * 公告列表缓存 Key
      */
     public static final String NOTICE_LIST_KEY = "notice:list";
+
+    /**
+     * 标签列表缓存 Key
+     */
+    public static final String TAG_LIST_KEY = "tag:list";
+
+    /**
+     * 分类列表缓存 Key
+     */
+    public static final String CATEGORY_LIST_KEY = "category:list";
+
+    /**
+     * 分类文章数量缓存 Key
+     */
+    public static final String CATEGORY_ARTICLE_COUNT_KEY = "category:article_count";
+
+    /**
+     * 友链列表缓存 Key
+     */
+    public static final String FRIEND_LIST_KEY = "friend:list";
+
+    /**
+     * 热搜缓存 Key（后缀为热搜类型，如 github）
+     */
+    public static final String HOT_SEARCH_KEY = "hot_search:";
 }

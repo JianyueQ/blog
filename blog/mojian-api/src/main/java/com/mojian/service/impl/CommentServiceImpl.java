@@ -15,7 +15,10 @@ import com.mojian.utils.PageUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,11 +31,18 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public IPage<CommentListVo> getComments(Integer articleId,String sortType) {
         IPage<CommentListVo> page = sysCommentMapper.getComments(PageUtil.getPage(),articleId,sortType);
-        //获取所有子评论
-        page.getRecords().forEach(commentListVo -> {
-            List<CommentListVo> children = sysCommentMapper.getChildrenComment(commentListVo.getId());
-            commentListVo.setChildren(children);
-        });
+        // 批量获取所有子评论，避免N+1查询
+        List<CommentListVo> records = page.getRecords();
+        if (!records.isEmpty()) {
+            List<Integer> parentIds = records.stream()
+                    .map(CommentListVo::getId)
+                    .collect(Collectors.toList());
+            List<CommentListVo> allChildren = sysCommentMapper.getChildrenCommentsByParentIds(parentIds);
+            Map<Integer, List<CommentListVo>> childrenMap = allChildren.stream()
+                    .collect(Collectors.groupingBy(CommentListVo::getParentId));
+            records.forEach(commentListVo ->
+                    commentListVo.setChildren(childrenMap.getOrDefault(commentListVo.getId(), Collections.emptyList())));
+        }
         return page;
     }
 

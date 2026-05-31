@@ -31,7 +31,7 @@ export const useSettingsStore = defineStore({
     dynamicTitle: false,
     greyMode: false,
     showFooter: true,
-    title: import.meta.env.VITE_APP_TITLE || '博客管理系统',
+    title: import.meta.env.VITE_APP_ADMIN_TITLE || '博客管理系统',
     sidebarStyle: 'dark'
   }),
 
@@ -167,7 +167,7 @@ export const useSettingsStore = defineStore({
         dynamicTitle: false,
         greyMode: false,
         showFooter: true,
-        title: import.meta.env.VITE_APP_TITLE || 'Neat Admin',
+        title: import.meta.env.VITE_APP_ADMIN_TITLE || 'Neat Admin',
         sidebarStyle: 'dark'
       }
       this.saveSettings(defaultSettings)
