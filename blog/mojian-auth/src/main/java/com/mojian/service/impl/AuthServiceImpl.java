@@ -14,13 +14,12 @@ import com.mojian.dto.Captcha;
 import com.mojian.dto.EmailRegisterDto;
 import com.mojian.dto.LoginDTO;
 import com.mojian.dto.user.LoginUserInfo;
-import com.mojian.entity.SysConfig;
 import com.mojian.entity.SysRole;
 import com.mojian.entity.SysThirdPartyConfig;
 import com.mojian.entity.SysUserThirdParty;
 import com.mojian.enums.LoginTypeEnum;
-import com.mojian.mapper.SysConfigMapper;
 import com.mojian.service.AuthService;
+import com.mojian.service.ConfigCacheService;
 import com.mojian.service.SysThirdPartyConfigService;
 import com.mojian.service.SysUserThirdPartyService;
 import com.mojian.entity.SysUser;
@@ -83,18 +82,19 @@ public class AuthServiceImpl implements AuthService {
 
     private final WechatProperties wechatProperties;
 
-    private final SysConfigMapper sysConfigMapper;
-
     private final SysThirdPartyConfigService sysThirdPartyConfigService;
 
     private final SysUserThirdPartyService sysUserThirdPartyService;
+
+    private final ConfigCacheService configCacheService;
 
 
     @Override
     public LoginUserInfo login(LoginDTO loginDTO) {
 
-        SysConfig verifySwitch = sysConfigMapper.selectOne(new LambdaQueryWrapper<SysConfig>().eq(SysConfig::getConfigKey, "slider_verify_switch"));
-        if (verifySwitch != null && verifySwitch.getConfigValue().equals("Y")) {
+        // 从缓存获取滑块验证码开关
+        String verifyValue = configCacheService.getConfigValue("slider_verify_switch");
+        if ("Y".equals(verifyValue)) {
             //校验验证码
             CaptchaUtil.checkImageCode(loginDTO.getNonceStr(), loginDTO.getValue());
         }
@@ -313,7 +313,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (response.getData() == null) {
             log.info("用户取消了 {} 第三方登录",source);
-            httpServletResponse.sendRedirect(Constants.LOGIN_URL);
+            httpServletResponse.sendRedirect(configCacheService.getFrontBaseUrl() + Constants.FRONT_HOME_PATH);
             return;
         }
         String result = JSONObject.toJSONString(response.getData());
@@ -374,7 +374,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         StpUtil.login(user.getId());
-        httpServletResponse.sendRedirect(Constants.LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
+        httpServletResponse.sendRedirect(configCacheService.getFrontBaseUrl() + Constants.FRONT_LOGIN_SUCCESS_PATH + StpUtil.getTokenValue());
     }
 
     @Override
@@ -392,7 +392,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (response.getData() == null) {
             log.info("管理员取消了 {} 第三方登录", source);
-            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL);
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_LOGIN_PATH);
             return;
         }
 
@@ -406,7 +406,7 @@ public class AuthServiceImpl implements AuthService {
         SysUserThirdParty binding = sysUserThirdPartyService.getByThirdParty(source, uuid);
         if (binding == null) {
             log.info("第三方账号未绑定后台用户，type={}, uuid={}", source, uuid);
-            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=not_bound");
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_LOGIN_PATH + "?error=not_bound");
             return;
         }
 
@@ -414,25 +414,25 @@ public class AuthServiceImpl implements AuthService {
         SysUser user = userMapper.selectById(binding.getUserId());
         if (user == null) {
             log.warn("绑定的用户不存在，userId={}", binding.getUserId());
-            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=user_not_found");
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_LOGIN_PATH + "?error=user_not_found");
             return;
         }
 
         // 校验用户状态
         if (user.getStatus() != Constants.YES) {
-            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=disabled");
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_LOGIN_PATH + "?error=disabled");
             return;
         }
 
         // 前台用户禁止后台OAuth登录
         if (user.getUserType() != null && user.getUserType() == Constants.USER_TYPE_FRONT) {
             log.info("前台用户尝试后台OAuth登录被拒绝，userId={}", user.getId());
-            httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_URL + "?error=front_user");
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_LOGIN_PATH + "?error=front_user");
             return;
         }
 
         StpUtil.login(user.getId());
-        httpServletResponse.sendRedirect(Constants.ADMIN_LOGIN_SUCCESS_URL + StpUtil.getTokenValue());
+        httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_LOGIN_SUCCESS_PATH + StpUtil.getTokenValue());
     }
 
     /**
@@ -445,7 +445,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (response.getData() == null) {
             log.info("用户取消了 {} 绑定", source);
-            httpServletResponse.sendRedirect(Constants.FRONT_BIND_FAIL_URL + "用户取消授权");
+            httpServletResponse.sendRedirect(configCacheService.getFrontBaseUrl() + Constants.FRONT_BIND_FAIL_PATH + "用户取消授权");
             return;
         }
 
@@ -457,7 +457,7 @@ public class AuthServiceImpl implements AuthService {
             userId = Integer.parseInt(parts[1]);
         } catch (Exception e) {
             log.warn("绑定失败：无法从 state 解析用户ID, state={}", state);
-            httpServletResponse.sendRedirect(Constants.FRONT_BIND_FAIL_URL + "参数异常");
+            httpServletResponse.sendRedirect(configCacheService.getFrontBaseUrl() + Constants.FRONT_BIND_FAIL_PATH + "参数异常");
             return;
         }
 
@@ -469,10 +469,10 @@ public class AuthServiceImpl implements AuthService {
         try {
             sysUserThirdPartyService.bind(userId, source, uuid, nickname, avatar);
             log.info("用户 {} 绑定 {} 成功", userId, source);
-            httpServletResponse.sendRedirect(Constants.FRONT_BIND_SUCCESS_URL);
+            httpServletResponse.sendRedirect(configCacheService.getFrontBaseUrl() + Constants.FRONT_BIND_SUCCESS_PATH);
         } catch (ServiceException e) {
             log.warn("绑定失败: {}", e.getMessage());
-            httpServletResponse.sendRedirect(Constants.FRONT_BIND_FAIL_URL + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+            httpServletResponse.sendRedirect(configCacheService.getFrontBaseUrl() + Constants.FRONT_BIND_FAIL_PATH + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
         }
     }
 
@@ -487,7 +487,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (response.getData() == null) {
             log.info("用户取消了 {} 绑定", source);
-            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_FAIL_URL + "用户取消授权");
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_BIND_FAIL_PATH + "用户取消授权");
             return;
         }
 
@@ -499,7 +499,7 @@ public class AuthServiceImpl implements AuthService {
             userId = Integer.parseInt(parts[1]);
         } catch (Exception e) {
             log.warn("绑定失败：无法从 state 解析用户ID, state={}", state);
-            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_FAIL_URL + "参数异常");
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_BIND_FAIL_PATH + "参数异常");
             return;
         }
 
@@ -511,10 +511,10 @@ public class AuthServiceImpl implements AuthService {
         try {
             sysUserThirdPartyService.bind(userId, source, uuid, nickname, avatar);
             log.info("用户 {} 绑定 {} 成功", userId, source);
-            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_SUCCESS_URL);
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_BIND_SUCCESS_PATH);
         } catch (ServiceException e) {
             log.warn("绑定失败: {}", e.getMessage());
-            httpServletResponse.sendRedirect(Constants.ADMIN_BIND_FAIL_URL + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
+            httpServletResponse.sendRedirect(configCacheService.getAdminBaseUrl() + Constants.ADMIN_BIND_FAIL_PATH + java.net.URLEncoder.encode(e.getMessage(), "UTF-8"));
         }
     }
 

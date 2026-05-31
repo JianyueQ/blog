@@ -3,6 +3,7 @@ package com.mojian.service.impl;
 import java.util.List;
 
 import com.mojian.common.Constants;
+import com.mojian.common.RedisConstants;
 import com.mojian.enums.NoticePosttionEnum;
 import com.mojian.exception.ServiceException;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import com.mojian.mapper.SysNoticeMapper;
 import com.mojian.entity.SysNotice;
 import com.mojian.service.SysNoticeService;
 import com.mojian.utils.PageUtil;
+import com.mojian.utils.RedisUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -21,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice> implements SysNoticeService {
+
+    private final RedisUtil redisUtil;
 
     /**
      * 查询公告分页列表
@@ -63,7 +67,11 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
                 throw new ServiceException("显示的顶部公告只能有一个!");
             }
         }
-        return save(sysNotice);
+        boolean result = save(sysNotice);
+        if (result) {
+            redisUtil.delete(RedisConstants.NOTICE_LIST_KEY);
+        }
+        return result;
     }
 
     /**
@@ -80,7 +88,11 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
                 throw new ServiceException("显示的顶部公告只能有一个!");
             }
         }
-        return updateById(sysNotice);
+        boolean result = updateById(sysNotice);
+        if (result) {
+            redisUtil.delete(RedisConstants.NOTICE_LIST_KEY);
+        }
+        return result;
     }
 
     /**
@@ -88,6 +100,10 @@ public class SysNoticeServiceImpl extends ServiceImpl<SysNoticeMapper, SysNotice
      */
     @Override
     public boolean deleteByIds(List<Long> ids) {
-        return removeByIds(ids);
+        boolean result = removeByIds(ids);
+        if (result) {
+            redisUtil.delete(RedisConstants.NOTICE_LIST_KEY);
+        }
+        return result;
     }
 }

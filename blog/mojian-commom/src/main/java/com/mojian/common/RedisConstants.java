@@ -142,4 +142,14 @@ public class RedisConstants {
      * 每日邮件发送次数上限
      */
     public static final int EMAIL_DAILY_LIMIT = 5;
+
+    /**
+     * 站点参数配置缓存 Key（后缀为 configKey）
+     */
+    public static final String SITE_CONFIG_KEY = "site_config:";
+
+    /**
+     * 公告列表缓存 Key
+     */
+    public static final String NOTICE_LIST_KEY = "notice:list";
 }

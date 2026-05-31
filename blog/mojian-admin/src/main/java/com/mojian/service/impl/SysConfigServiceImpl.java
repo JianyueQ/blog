@@ -75,6 +75,8 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigMapper, SysConfig
             throw new ServiceException("参数键名已存在");
         }
         updateById(sysConfig);
+        // 清除 ConfigCacheService 的 Redis 缓存
+        redisUtil.delete(RedisConstants.SITE_CONFIG_KEY + sysConfig.getConfigKey());
         // 如果是邮件相关配置，清除邮件缓存
         if (sysConfig.getConfigKey().startsWith("mail_")) {
             redisUtil.delete(RedisConstants.EMAIL_CONFIG_KEY);

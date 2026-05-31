@@ -2,6 +2,7 @@ package com.mojian.service.impl;
 
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mojian.common.Constants;
 import com.mojian.common.RedisConstants;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -93,10 +95,20 @@ public class HomeServiceImpl implements HomeService {
 
     @Override
     public Map<String, List<SysNotice>> getNotice() {
-
+        // 优先从缓存获取
+        Object cached = redisUtil.get(RedisConstants.NOTICE_LIST_KEY);
+        if (cached != null) {
+            return JSONObject.parseObject(cached.toString(),
+                    new TypeReference<Map<String, List<SysNotice>>>() {});
+        }
         List<SysNotice> sysNotices = noticeMapper.selectList(new LambdaQueryWrapper<SysNotice>()
                 .eq(SysNotice::getIsShow, Constants.YES));
-        return sysNotices.stream()
+        Map<String, List<SysNotice>> result = sysNotices.stream()
                 .collect(Collectors.groupingBy(SysNotice::getPosition));
+        // 缓存1天
+        redisUtil.set(RedisConstants.NOTICE_LIST_KEY,
+                JSONObject.toJSONString(result),
+                RedisConstants.DAY_EXPIRE, TimeUnit.SECONDS);
+        return result;
     }
 }

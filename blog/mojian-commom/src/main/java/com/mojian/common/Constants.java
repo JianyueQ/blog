@@ -29,22 +29,26 @@ public class Constants {
 
     public static final Long XIAO_ASSISTANT_ID  = 2L;
 
-    public static final String LOGIN_URL = "https://blog.jianyue.cloud/";
-    public static final String LOGIN_SUCCESS_URL = "https://blog.jianyue.cloud/?token=";
+    // ===== 第三方登录重定向路径（域名从 sys_config 表的 admin_base_url / front_base_url 动态获取） =====
 
-    /** 后台登录页地址 */
-    public static final String ADMIN_LOGIN_URL = "https://blog.jianyue.cloud/admin/login";
-    /** 后台登录成功重定向地址 */
-    public static final String ADMIN_LOGIN_SUCCESS_URL = "https://blog.jianyue.cloud/admin/?token=";
-    /** 后台绑定成功重定向地址 */
-    public static final String ADMIN_BIND_SUCCESS_URL = "https://blog.jianyue.cloud/admin/bindCallback?result=success";
-    /** 后台绑定失败重定向地址 */
-    public static final String ADMIN_BIND_FAIL_URL = "https://blog.jianyue.cloud/admin/bindCallback?result=fail&msg=";
+    /** 前台首页路径 */
+    public static final String FRONT_HOME_PATH = "/";
+    /** 前台登录成功路径（拼接token） */
+    public static final String FRONT_LOGIN_SUCCESS_PATH = "/?token=";
 
-    /** 前台绑定成功重定向地址 */
-    public static final String FRONT_BIND_SUCCESS_URL = "https://blog.jianyue.cloud/bindCallback?result=success";
-    /** 前台绑定失败重定向地址 */
-    public static final String FRONT_BIND_FAIL_URL = "https://blog.jianyue.cloud/bindCallback?result=fail&msg=";
+    /** 后台登录页路径 */
+    public static final String ADMIN_LOGIN_PATH = "/admin/login";
+    /** 后台登录成功路径（拼接token） */
+    public static final String ADMIN_LOGIN_SUCCESS_PATH = "/admin/?token=";
+    /** 后台绑定成功路径 */
+    public static final String ADMIN_BIND_SUCCESS_PATH = "/admin/bindCallback?result=success";
+    /** 后台绑定失败路径 */
+    public static final String ADMIN_BIND_FAIL_PATH = "/admin/bindCallback?result=fail&msg=";
+
+    /** 前台绑定成功路径 */
+    public static final String FRONT_BIND_SUCCESS_PATH = "/bindCallback?result=success";
+    /** 前台绑定失败路径 */
+    public static final String FRONT_BIND_FAIL_PATH = "/bindCallback?result=fail&msg=";
 
     /** 第三方登录配置缓存名 */
     public static final String CACHE_THIRD_PARTY_CONFIG = "third_party_config";

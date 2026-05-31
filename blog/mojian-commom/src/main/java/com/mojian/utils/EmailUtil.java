@@ -6,7 +6,7 @@ import com.mojian.common.RedisConstants;
 import com.mojian.entity.SysConfig;
 import com.mojian.entity.SysWebConfig;
 import com.mojian.mapper.SysConfigMapper;
-import com.mojian.mapper.SysWebConfigMapper;
+import com.mojian.service.ConfigCacheService;
 import com.mojian.vo.email.EmailConfigVO;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -34,7 +34,7 @@ public class EmailUtil {
 
     private final RedisUtil redisUtil;
     private final SysConfigMapper sysConfigMapper;
-    private final SysWebConfigMapper sysWebConfigMapper;
+    private final ConfigCacheService configCacheService;
 
     private JavaMailSenderImpl javaMailSender;
     private EmailConfigVO cachedConfig;
@@ -133,10 +133,8 @@ public class EmailUtil {
 
         int code = (int) ((ThreadLocalRandom.current().nextDouble() * 9 + 1) * 100000);
 
-        // 从 sys_web_config 获取站点信息
-        SysWebConfig webConfig = sysWebConfigMapper.selectOne(
-            new LambdaQueryWrapper<SysWebConfig>().last("limit 1")
-        );
+        // 从缓存获取站点信息
+        SysWebConfig webConfig = configCacheService.getWebConfig();
 
         // 替换模板占位符
         String content = MAIL_TEMPLATE
